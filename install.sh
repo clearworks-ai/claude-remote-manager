@@ -4,6 +4,23 @@
 
 set -euo pipefail
 
+# Dependency checks
+MISSING=""
+command -v tmux >/dev/null 2>&1 || MISSING="${MISSING} tmux"
+command -v jq >/dev/null 2>&1 || MISSING="${MISSING} jq"
+command -v claude >/dev/null 2>&1 || MISSING="${MISSING} claude"
+
+if [[ -n "$MISSING" ]]; then
+    echo "ERROR: Missing required dependencies:${MISSING}"
+    echo ""
+    [[ "$MISSING" == *"tmux"* ]] && echo "  tmux:   brew install tmux"
+    [[ "$MISSING" == *"jq"* ]] && echo "  jq:     brew install jq"
+    [[ "$MISSING" == *"claude"* ]] && echo "  claude: https://docs.anthropic.com/en/docs/claude-code"
+    echo ""
+    echo "Install the missing dependencies and run this again."
+    exit 1
+fi
+
 TEMPLATE_ROOT="$(cd "$(dirname "$0")" && pwd)"
 
 # Get instance ID from argument, .env, or default
