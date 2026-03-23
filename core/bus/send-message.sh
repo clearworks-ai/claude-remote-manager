@@ -4,20 +4,37 @@
 
 set -euo pipefail
 
-BOS_ROOT="${BOS_ROOT:-${HOME}/.business-os}"
-BOS_AGENT_NAME="$(basename "$(pwd)")"
-FROM="${BOS_AGENT_NAME}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+TEMPLATE_ROOT="${CRM_TEMPLATE_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+
+# Resolve CRM_ROOT with instance ID
+if [[ -z "${CRM_ROOT:-}" ]]; then
+    REPO_ENV="${TEMPLATE_ROOT}/.env"
+    if [[ -f "${REPO_ENV}" ]]; then
+        CRM_INSTANCE_ID=$(grep '^CRM_INSTANCE_ID=' "${REPO_ENV}" | cut -d= -f2)
+    fi
+    CRM_INSTANCE_ID="${CRM_INSTANCE_ID:-default}"
+    CRM_ROOT="${HOME}/.claude-remote/${CRM_INSTANCE_ID}"
+fi
+
+CRM_AGENT_NAME="$(basename "$(pwd)")"
+FROM="${CRM_AGENT_NAME}"
+
+# Validate agent name to prevent injection
+if [[ ! "${FROM}" =~ ^[a-z0-9_-]+$ ]]; then
+    echo "ERROR: Invalid agent name '${FROM}'" >&2
+    exit 1
+fi
 
 TO="$1"
 PRIORITY="${2:-normal}"
 TEXT="${3:-}"
 REPLY_TO="${4:-null}"
 
-# Validate target agent
-INBOX_DIR="${BOS_ROOT}/inbox/${TO}"
+# Auto-create target inbox if it doesn't exist (same instance)
+INBOX_DIR="${CRM_ROOT}/inbox/${TO}"
 if [[ ! -d "${INBOX_DIR}" ]]; then
-    echo "ERROR: Unknown agent '${TO}' - no inbox at ${INBOX_DIR}" >&2
-    exit 1
+    mkdir -p "${INBOX_DIR}"
 fi
 
 # Map priority to sort number

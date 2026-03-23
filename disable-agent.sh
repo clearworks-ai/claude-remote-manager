@@ -9,25 +9,25 @@ TEMPLATE_ROOT="$(cd "$(dirname "$0")" && pwd)"
 # Load instance ID
 REPO_ENV="${TEMPLATE_ROOT}/.env"
 if [[ -f "${REPO_ENV}" ]]; then
-    BOS_INSTANCE_ID=$(grep '^BOS_INSTANCE_ID=' "${REPO_ENV}" | cut -d= -f2)
+    CRM_INSTANCE_ID=$(grep '^CRM_INSTANCE_ID=' "${REPO_ENV}" | cut -d= -f2)
 fi
-BOS_INSTANCE_ID="${BOS_INSTANCE_ID:-default}"
-BOS_ROOT="${HOME}/.business-os/${BOS_INSTANCE_ID}"
+CRM_INSTANCE_ID="${CRM_INSTANCE_ID:-default}"
+CRM_ROOT="${HOME}/.claude-remote/${CRM_INSTANCE_ID}"
 
 AGENT="${1:?Usage: disable-agent.sh <agent_name>}"
-ENABLED_FILE="${BOS_ROOT}/config/enabled-agents.json"
+ENABLED_FILE="${CRM_ROOT}/config/enabled-agents.json"
 
 echo "Disabling ${AGENT}..."
 
 # Unload launchd plist
-PLIST="${HOME}/Library/LaunchAgents/com.business-os.${BOS_INSTANCE_ID}.${AGENT}.plist"
+PLIST="${HOME}/Library/LaunchAgents/com.claude-remote.${CRM_INSTANCE_ID}.${AGENT}.plist"
 if [[ -f "${PLIST}" ]]; then
     launchctl unload "${PLIST}" 2>/dev/null || true
     echo "  launchd: unloaded"
 fi
 
 # Kill tmux session if running
-TMUX_SESSION="bos-${BOS_INSTANCE_ID}-${AGENT}"
+TMUX_SESSION="crm-${CRM_INSTANCE_ID}-${AGENT}"
 tmux kill-session -t "${TMUX_SESSION}" 2>/dev/null || true
 
 # Update enabled status

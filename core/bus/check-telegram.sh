@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
 # check-telegram.sh - Check for new Telegram messages for this agent's bot
 # Usage: check-telegram.sh
-# Requires: BOS_AGENT_NAME, BOT_TOKEN from environment (.env)
+# Requires: CRM_AGENT_NAME, BOT_TOKEN from environment (.env)
 
 set -euo pipefail
 
-BOS_ROOT="${BOS_ROOT:-${HOME}/.business-os}"
-TEMPLATE_ROOT="${BOS_TEMPLATE_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+CRM_ROOT="${CRM_ROOT:-${HOME}/.claude-remote}"
+TEMPLATE_ROOT="${CRM_TEMPLATE_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
 # Always detect from cwd
-BOS_AGENT_NAME="$(basename "$(pwd)")"
-ME="${BOS_AGENT_NAME}"
+CRM_AGENT_NAME="$(basename "$(pwd)")"
+ME="${CRM_AGENT_NAME}"
 
 # Always source .env to get BOT_TOKEN
 ENV_FILE="${TEMPLATE_ROOT}/agents/${ME}/.env"
@@ -28,8 +28,12 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "${SCRIPT_DIR}/_telegram-curl.sh"
 
+# ALLOWED_USER is required - reject all messages if not configured
 ALLOWED_USER="${ALLOWED_USER:-}"
-OFFSET_FILE="${BOS_ROOT}/state/.telegram-offset-${ME}"
+if [[ -z "${ALLOWED_USER}" ]]; then
+    exit 0
+fi
+OFFSET_FILE="${CRM_ROOT}/state/.telegram-offset-${ME}"
 
 # Read last offset
 OFFSET=$(cat "${OFFSET_FILE}" 2>/dev/null || echo "0")
@@ -43,12 +47,8 @@ if ! echo "${RESPONSE}" | jq -e '.ok' > /dev/null 2>&1; then
 fi
 
 # Filter messages
-if [[ -n "${ALLOWED_USER}" ]]; then
-    MESSAGES=$(echo "${RESPONSE}" | jq --arg uid "${ALLOWED_USER}" \
-        '[.result[] | select(.message.from.id == ($uid | tonumber) or .callback_query.from.id == ($uid | tonumber))]')
-else
-    MESSAGES=$(echo "${RESPONSE}" | jq '[.result[]]')
-fi
+MESSAGES=$(echo "${RESPONSE}" | jq --arg uid "${ALLOWED_USER}" \
+    '[.result[] | select(.message.from.id == ($uid | tonumber) or .callback_query.from.id == ($uid | tonumber))]')
 
 # Update offset
 NEW_OFFSET=$(echo "${RESPONSE}" | jq '.result[-1].update_id + 1 // empty')

@@ -5,9 +5,9 @@
 
 set -euo pipefail
 
-TEMPLATE_ROOT="${BOS_TEMPLATE_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
-BOS_AGENT_NAME="$(basename "$(pwd)")"
-ME="${BOS_AGENT_NAME}"
+TEMPLATE_ROOT="${CRM_TEMPLATE_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+CRM_AGENT_NAME="$(basename "$(pwd)")"
+ME="${CRM_AGENT_NAME}"
 
 # Parse arguments - handle --image flag
 CHAT_ID="${1:-}"
@@ -67,6 +67,11 @@ if [[ -n "${IMAGE_PATH}" ]]; then
     fi
     exit 0
 fi
+
+# Strip MarkdownV2 backslash escapes that Claude adds despite instructions not to.
+# Only strips \X where X is NOT a Markdown-significant char (*_`[).
+# This preserves intentional Markdown formatting while fixing cosmetic escapes.
+MESSAGE=$(printf '%s' "$MESSAGE" | sed -E 's/\\([^*_`[\\])/\1/g')
 
 # Build text message request
 if [[ -n "${KEYBOARD}" ]]; then

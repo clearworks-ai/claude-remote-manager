@@ -12,11 +12,11 @@ Messages are delivered in real time by the fast-checker daemon running alongside
 ```
 === TELEGRAM from <name> (chat_id:<id>) ===
 <message text>
-Reply using: bash ../../bus/send-telegram.sh <chat_id> "<your reply>"
+Reply using: bash ../../core/bus/send-telegram.sh <chat_id> "<your reply>"
 
 === AGENT MESSAGE from <agent> [msg_id: <id>] ===
 <message text>
-Reply using: bash ../../bus/send-message.sh <agent> normal '<your reply>' <msg_id>
+Reply using: bash ../../core/bus/send-message.sh <agent> normal '<your reply>' <msg_id>
 ```
 
 ## What To Do

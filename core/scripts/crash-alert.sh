@@ -2,15 +2,15 @@
 # crash-alert.sh - SessionEnd hook for instant crash/exit alerting
 # Called by Claude Code's SessionEnd hook in each agent's .claude/settings.json
 # Receives JSON on stdin with: session_id, transcript_path, cwd, hook_event_name
-# Environment: BOS_AGENT_NAME, BOS_ROOT, BOS_TEMPLATE_ROOT set by agent-wrapper.sh
+# Environment: CRM_AGENT_NAME, CRM_ROOT, CRM_TEMPLATE_ROOT set by agent-wrapper.sh
 
 set -uo pipefail  # No -e: best-effort alerting even if parts fail
 
-BOS_ROOT="${BOS_ROOT:-${HOME}/.business-os}"
-AGENT="${BOS_AGENT_NAME:-unknown}"
-TEMPLATE_ROOT="${BOS_TEMPLATE_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
+CRM_ROOT="${CRM_ROOT:-${HOME}/.claude-remote}"
+AGENT="${CRM_AGENT_NAME:-unknown}"
+TEMPLATE_ROOT="${CRM_TEMPLATE_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
 TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-LOG_DIR="${BOS_ROOT}/logs/${AGENT}"
+LOG_DIR="${CRM_ROOT}/logs/${AGENT}"
 
 mkdir -p "${LOG_DIR}"
 
@@ -43,7 +43,7 @@ if [[ -f "${ENV_FILE}" ]]; then
 fi
 
 if [[ -n "${BOT_TOKEN:-}" && -n "${CHAT_ID:-}" ]]; then
-    source "${TEMPLATE_ROOT}/bus/_telegram-curl.sh"
+    source "${TEMPLATE_ROOT}/core/bus/_telegram-curl.sh"
     telegram_api_post "sendMessage" \
         -d chat_id="${CHAT_ID}" \
         --data-urlencode "text=${MESSAGE}" \

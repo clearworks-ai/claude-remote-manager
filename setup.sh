@@ -13,9 +13,9 @@ if [[ ! -f "${TEMPLATE_ROOT}/.env" ]]; then
 fi
 
 # Load instance ID
-BOS_INSTANCE_ID=$(grep '^BOS_INSTANCE_ID=' "${TEMPLATE_ROOT}/.env" | cut -d= -f2)
-BOS_INSTANCE_ID="${BOS_INSTANCE_ID:-default}"
-BOS_ROOT="${HOME}/.business-os/${BOS_INSTANCE_ID}"
+CRM_INSTANCE_ID=$(grep '^CRM_INSTANCE_ID=' "${TEMPLATE_ROOT}/.env" | cut -d= -f2)
+CRM_INSTANCE_ID="${CRM_INSTANCE_ID:-default}"
+CRM_ROOT="${HOME}/.claude-remote/${CRM_INSTANCE_ID}"
 
 echo "========================================="
 echo "  Claude Remote Manager - Agent Setup"
@@ -28,6 +28,11 @@ AGENT_NAME=$(echo "${AGENT_NAME}" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
 
 if [[ -z "${AGENT_NAME}" ]]; then
     echo "ERROR: Agent name cannot be empty."
+    exit 1
+fi
+
+if [[ ! "${AGENT_NAME}" =~ ^[a-z0-9_-]+$ ]]; then
+    echo "ERROR: Agent name can only contain lowercase letters, numbers, hyphens, and underscores."
     exit 1
 fi
 
@@ -73,11 +78,17 @@ if [[ -z "${CHAT_ID}" ]]; then
     exit 1
 fi
 
-# Ask for allowed user ID (optional)
+# Ask for allowed user ID (required for security)
 echo ""
 echo "For security, enter your Telegram User ID to restrict who can message the bot."
-echo "(This is usually the same as Chat ID for private chats. Leave blank to allow anyone.)"
-read -rp "Allowed User ID (optional): " ALLOWED_USER
+echo "(This is usually the same as Chat ID for private chats.)"
+read -rp "Allowed User ID: " ALLOWED_USER
+
+if [[ -z "${ALLOWED_USER}" ]]; then
+    echo "  Auto-detecting from Chat ID (same for private chats)..."
+    ALLOWED_USER="${CHAT_ID}"
+    echo "  Using: ${ALLOWED_USER}"
+fi
 
 # Write .env file
 cat > "${AGENT_DIR}/.env" << EOF
@@ -85,31 +96,32 @@ BOT_TOKEN=${BOT_TOKEN}
 CHAT_ID=${CHAT_ID}
 ALLOWED_USER=${ALLOWED_USER}
 EOF
+chmod 600 "${AGENT_DIR}/.env"
 
 # Update config.json with agent name
 TEMP_CONFIG=$(mktemp)
 jq --arg name "${AGENT_NAME}" '.agent_name = $name' "${AGENT_DIR}/config.json" > "${TEMP_CONFIG}"
 mv "${TEMP_CONFIG}" "${AGENT_DIR}/config.json"
 
-# Create per-agent state directories
-mkdir -p "${BOS_ROOT}/inbox/${AGENT_NAME}"
-mkdir -p "${BOS_ROOT}/outbox/${AGENT_NAME}"
-mkdir -p "${BOS_ROOT}/processed/${AGENT_NAME}"
-mkdir -p "${BOS_ROOT}/inflight/${AGENT_NAME}"
-mkdir -p "${BOS_ROOT}/logs/${AGENT_NAME}"
+# Create per-agent state directories (700 = owner-only access)
+mkdir -p "${CRM_ROOT}/inbox/${AGENT_NAME}" && chmod 700 "${CRM_ROOT}/inbox/${AGENT_NAME}"
+mkdir -p "${CRM_ROOT}/outbox/${AGENT_NAME}" && chmod 700 "${CRM_ROOT}/outbox/${AGENT_NAME}"
+mkdir -p "${CRM_ROOT}/processed/${AGENT_NAME}" && chmod 700 "${CRM_ROOT}/processed/${AGENT_NAME}"
+mkdir -p "${CRM_ROOT}/inflight/${AGENT_NAME}" && chmod 700 "${CRM_ROOT}/inflight/${AGENT_NAME}"
+mkdir -p "${CRM_ROOT}/logs/${AGENT_NAME}" && chmod 700 "${CRM_ROOT}/logs/${AGENT_NAME}"
 
 # Make all scripts executable
 chmod +x "${TEMPLATE_ROOT}/"*.sh 2>/dev/null || true
-chmod +x "${TEMPLATE_ROOT}/scripts/"*.sh 2>/dev/null || true
-chmod +x "${TEMPLATE_ROOT}/bus/"*.sh 2>/dev/null || true
+chmod +x "${TEMPLATE_ROOT}/core/scripts/"*.sh 2>/dev/null || true
+chmod +x "${TEMPLATE_ROOT}/core/bus/"*.sh 2>/dev/null || true
 
 # Generate launchd plist
 echo ""
 echo "Generating launchd service..."
-"${TEMPLATE_ROOT}/scripts/generate-launchd.sh" "${AGENT_NAME}"
+"${TEMPLATE_ROOT}/core/scripts/generate-launchd.sh" "${AGENT_NAME}"
 
 # Update enabled-agents.json
-ENABLED_FILE="${BOS_ROOT}/config/enabled-agents.json"
+ENABLED_FILE="${CRM_ROOT}/config/enabled-agents.json"
 jq ".\"${AGENT_NAME}\".enabled = true | .\"${AGENT_NAME}\".status = \"configured\"" "${ENABLED_FILE}" > "${ENABLED_FILE}.tmp"
 mv "${ENABLED_FILE}.tmp" "${ENABLED_FILE}"
 
@@ -120,8 +132,8 @@ echo "========================================="
 echo ""
 echo "  Agent:   ${AGENT_NAME}"
 echo "  Dir:     ${AGENT_DIR}"
-echo "  tmux:    tmux attach -t bos-${BOS_INSTANCE_ID}-${AGENT_NAME}"
-echo "  Logs:    ${BOS_ROOT}/logs/${AGENT_NAME}/"
+echo "  tmux:    tmux attach -t crm-${CRM_INSTANCE_ID}-${AGENT_NAME}"
+echo "  Logs:    ${CRM_ROOT}/logs/${AGENT_NAME}/"
 echo ""
 echo "  Message your Telegram bot to start."
 echo ""

@@ -1,6 +1,6 @@
 ---
 name: cron-management
-description: "Manage scheduled tasks (crons). Use when: setting up crons on session start, creating new recurring tasks, or troubleshooting scheduled tasks."
+description: "Manage scheduled tasks (crons). Use when: setting up crons on session start, creating new recurring or scheduled tasks, or troubleshooting scheduled tasks."
 ---
 
 # Cron Management
@@ -17,10 +17,7 @@ Check if your crons are active. If not, recreate them:
 
 ## Default Crons
 
-Every agent has one base cron:
-- **heartbeat** (4h default) - Update heartbeat, check inbox, report status
-
-Additional crons can be defined in `config.json` for domain-specific work.
+No crons are defined by default. Users can add any recurring tasks they need to `config.json`.
 
 ## Adding a New Cron
 

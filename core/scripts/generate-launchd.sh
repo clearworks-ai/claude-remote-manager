@@ -5,23 +5,23 @@
 set -euo pipefail
 
 AGENT="$1"
-TEMPLATE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+TEMPLATE_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 AGENT_DIR="${TEMPLATE_ROOT}/agents/${AGENT}"
 CONFIG_FILE="${AGENT_DIR}/config.json"
 
 # Load instance ID from repo .env
 ENV_FILE="${TEMPLATE_ROOT}/.env"
 if [[ -f "${ENV_FILE}" ]]; then
-    BOS_INSTANCE_ID=$(grep '^BOS_INSTANCE_ID=' "${ENV_FILE}" | cut -d= -f2)
+    CRM_INSTANCE_ID=$(grep '^CRM_INSTANCE_ID=' "${ENV_FILE}" | cut -d= -f2)
 fi
-BOS_INSTANCE_ID="${BOS_INSTANCE_ID:-default}"
+CRM_INSTANCE_ID="${CRM_INSTANCE_ID:-default}"
 
 PLIST_DIR="${HOME}/Library/LaunchAgents"
-PLIST_NAME="com.business-os.${BOS_INSTANCE_ID}.${AGENT}"
+PLIST_NAME="com.claude-remote.${CRM_INSTANCE_ID}.${AGENT}"
 PLIST_FILE="${PLIST_DIR}/${PLIST_NAME}.plist"
-BOS_ROOT="${HOME}/.business-os/${BOS_INSTANCE_ID}"
-LOG_DIR="${BOS_ROOT}/logs/${AGENT}"
-WRAPPER="${TEMPLATE_ROOT}/scripts/agent-wrapper.sh"
+CRM_ROOT="${HOME}/.claude-remote/${CRM_INSTANCE_ID}"
+LOG_DIR="${CRM_ROOT}/logs/${AGENT}"
+WRAPPER="${TEMPLATE_ROOT}/core/scripts/agent-wrapper.sh"
 
 mkdir -p "${PLIST_DIR}" "${LOG_DIR}"
 
@@ -72,13 +72,13 @@ cat > "${PLIST_FILE}" <<ENDPLIST
         <string>${LAUNCHD_PATH}</string>
         <key>HOME</key>
         <string>${HOME}</string>
-        <key>BOS_AGENT_NAME</key>
+        <key>CRM_AGENT_NAME</key>
         <string>${AGENT}</string>
-        <key>BOS_INSTANCE_ID</key>
-        <string>${BOS_INSTANCE_ID}</string>
-        <key>BOS_ROOT</key>
-        <string>${BOS_ROOT}</string>
-        <key>BOS_TEMPLATE_ROOT</key>
+        <key>CRM_INSTANCE_ID</key>
+        <string>${CRM_INSTANCE_ID}</string>
+        <key>CRM_ROOT</key>
+        <string>${CRM_ROOT}</string>
+        <key>CRM_TEMPLATE_ROOT</key>
         <string>${TEMPLATE_ROOT}</string>
     </dict>
 

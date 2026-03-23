@@ -9,7 +9,7 @@
 #   3. Claude bootstraps, creates /loop crons, runs until timeout (default 71h)
 #   4. Timer restarts Claude CLI with --continue (reloads configs, preserves conversation)
 #
-# User can attach to any agent: tmux attach -t bos-<instance>-<agent_name>
+# User can attach to any agent: tmux attach -t crm-<instance>-<agent_name>
 #
 # NOTE: --dangerously-skip-permissions is required for headless mode.
 # Agent boundaries are enforced via CLAUDE.md instructions, not CLI permissions.
@@ -22,17 +22,17 @@ TEMPLATE_ROOT="$2"
 # Load instance ID from repo .env or environment
 REPO_ENV="${TEMPLATE_ROOT}/.env"
 if [[ -f "${REPO_ENV}" ]]; then
-    BOS_INSTANCE_ID=$(grep '^BOS_INSTANCE_ID=' "${REPO_ENV}" | cut -d= -f2)
+    CRM_INSTANCE_ID=$(grep '^CRM_INSTANCE_ID=' "${REPO_ENV}" | cut -d= -f2)
 fi
-BOS_INSTANCE_ID="${BOS_INSTANCE_ID:-default}"
+CRM_INSTANCE_ID="${CRM_INSTANCE_ID:-default}"
 
-BOS_ROOT="${HOME}/.business-os/${BOS_INSTANCE_ID}"
+CRM_ROOT="${HOME}/.claude-remote/${CRM_INSTANCE_ID}"
 AGENT_DIR="${TEMPLATE_ROOT}/agents/${AGENT}"
-LOG_DIR="${BOS_ROOT}/logs/${AGENT}"
+LOG_DIR="${CRM_ROOT}/logs/${AGENT}"
 CRASH_LOG="${LOG_DIR}/crashes.log"
 CRASH_COUNT_FILE="${LOG_DIR}/.crash_count_today"
 MAX_CRASHES_PER_DAY=3
-TMUX_SESSION="bos-${BOS_INSTANCE_ID}-${AGENT}"
+TMUX_SESSION="crm-${CRM_INSTANCE_ID}-${AGENT}"
 
 mkdir -p "${LOG_DIR}"
 
@@ -44,21 +44,12 @@ if [[ -f "${ENV_FILE}" ]]; then
     set +a
 fi
 
-# Also source user's shell profile for global env vars
-for profile in "${HOME}/.zshrc" "${HOME}/.bashrc" "${HOME}/.bash_profile" "${HOME}/.profile"; do
-    if [[ -f "${profile}" ]]; then
-        # Only source export lines to avoid interactive shell issues
-        grep -E '^export ' "${profile}" 2>/dev/null | while read -r line; do
-            eval "${line}" 2>/dev/null || true
-        done
-        break
-    fi
-done
+# Agents get their environment from .env files only (no shell profile sourcing for security)
 
-export BOS_AGENT_NAME="${AGENT}"
-export BOS_INSTANCE_ID="${BOS_INSTANCE_ID}"
-export BOS_ROOT="${BOS_ROOT}"
-export BOS_TEMPLATE_ROOT="${TEMPLATE_ROOT}"
+export CRM_AGENT_NAME="${AGENT}"
+export CRM_INSTANCE_ID="${CRM_INSTANCE_ID}"
+export CRM_ROOT="${CRM_ROOT}"
+export CRM_TEMPLATE_ROOT="${TEMPLATE_ROOT}"
 
 # Check crash count for today (single-line format: date:count)
 TODAY=$(date +%Y-%m-%d)
@@ -110,32 +101,37 @@ fi
 RESTART_NOTIFY="After setting up crons, send a Telegram message to the user saying you are back online, what session this is, and what you are about to work on."
 
 # STARTUP_PROMPT: used for fresh starts (hard-restart or first-ever launch)
-STARTUP_PROMPT="You are starting a new session. Read all bootstrap files listed in CLAUDE.md. Then read config.json and set up your crons using /loop for each entry in the crons array. After crons are set up, immediately run: bash ../../bus/update-heartbeat.sh online to mark yourself as online. ${RESTART_NOTIFY}"
+STARTUP_PROMPT="You are starting a new session. Read all bootstrap files listed in CLAUDE.md. Then read config.json and set up your crons using /loop for each entry in the crons array. ${RESTART_NOTIFY}"
 
 # CONTINUE_PROMPT: used when resuming via --continue (timer refresh or self-restart)
-CONTINUE_PROMPT="SESSION CONTINUATION: Your CLI process was restarted with --continue to reload configs. Your full conversation history is preserved. Do the following immediately: 1) Re-read ALL bootstrap files listed in CLAUDE.md. 2) Set up your crons from config.json using /loop (they were lost when the CLI restarted). 3) Check inbox. 4) Update heartbeat. 5) Resume normal operations. ${RESTART_NOTIFY}"
+CONTINUE_PROMPT="SESSION CONTINUATION: Your CLI process was restarted with --continue to reload configs. Your full conversation history is preserved. Do the following immediately: 1) Re-read ALL bootstrap files listed in CLAUDE.md. 2) Set up your crons from config.json using /loop (they were lost when the CLI restarted). 3) Check inbox. 4) Resume normal operations. ${RESTART_NOTIFY}"
 
 # Force-fresh marker: written by hard-restart.sh to signal a clean slate is needed.
 # Without the marker, launchd respawns always use --continue to preserve conversation history.
-FORCE_FRESH_MARKER="${BOS_ROOT}/state/heartbeat/${AGENT}.force-fresh"
+FORCE_FRESH_MARKER="${CRM_ROOT}/state/${AGENT}.force-fresh"
 
 cd "${AGENT_DIR}"
 
 # Determine start mode
+# Check if there's actually a conversation to continue by looking for .jsonl files
+# in Claude's project conversation directory.
+CONV_DIR="${HOME}/.claude/projects/-$(echo "${AGENT_DIR}" | tr '/' '-')"
+HAS_CONVERSATION=false
+if [[ -d "${CONV_DIR}" ]] && ls "${CONV_DIR}"/*.jsonl &>/dev/null; then
+    HAS_CONVERSATION=true
+fi
+
 if [[ -f "${FORCE_FRESH_MARKER}" ]]; then
     START_MODE="fresh"
     rm -f "${FORCE_FRESH_MARKER}"
+elif [[ "${HAS_CONVERSATION}" == "false" ]]; then
+    START_MODE="fresh"
+    echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) No conversation found for ${AGENT}, using fresh start" >> "${LOG_DIR}/activity.log"
 else
     START_MODE="continue"
 fi
 
 echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) Starting ${AGENT} mode=${START_MODE} (session cap: ${MAX_SESSION}s)" >> "${LOG_DIR}/activity.log"
-
-# Write a "booting" heartbeat immediately so other agents know we're alive
-HEARTBEAT_DIR="${BOS_ROOT}/state/heartbeat"
-mkdir -p "${HEARTBEAT_DIR}"
-BOOT_TS=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
-printf '{"last_heartbeat":"%s","status":"booting","current_task":"starting %s session","loop_interval":"1m"}\n' "${BOOT_TS}" "${START_MODE}" > "${HEARTBEAT_DIR}/${AGENT}.json"
 
 # Prevent Mac from sleeping while agent runs
 caffeinate -is -w $$ &
@@ -224,8 +220,8 @@ trap graceful_shutdown SIGTERM SIGINT
             # Kill old fast-checker and start fresh one
             pkill -f "fast-checker.sh ${AGENT} " 2>/dev/null || true
             sleep 1
-            if [[ -f "${TEMPLATE_ROOT}/scripts/fast-checker.sh" ]]; then
-                bash "${TEMPLATE_ROOT}/scripts/fast-checker.sh" "${AGENT}" "${TMUX_SESSION}" "${AGENT_DIR}" "${TEMPLATE_ROOT}" \
+            if [[ -f "${TEMPLATE_ROOT}/core/scripts/fast-checker.sh" ]]; then
+                bash "${TEMPLATE_ROOT}/core/scripts/fast-checker.sh" "${AGENT}" "${TMUX_SESSION}" "${AGENT_DIR}" "${TEMPLATE_ROOT}" \
                     >> "${LOG_DIR}/fast-checker.log" 2>&1 &
             fi
 
@@ -245,7 +241,7 @@ pkill -f "fast-checker.sh ${AGENT} " 2>/dev/null || true
 
 # Start fast message checker (Telegram + inbox polling every 3s)
 FAST_PID=""
-FAST_CHECKER="${TEMPLATE_ROOT}/scripts/fast-checker.sh"
+FAST_CHECKER="${TEMPLATE_ROOT}/core/scripts/fast-checker.sh"
 if [[ -f "${FAST_CHECKER}" ]]; then
     bash "${FAST_CHECKER}" "${AGENT}" "${TMUX_SESSION}" "${AGENT_DIR}" "${TEMPLATE_ROOT}" \
         >> "${LOG_DIR}/fast-checker.log" 2>&1 &

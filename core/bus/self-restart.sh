@@ -11,22 +11,22 @@
 set -euo pipefail
 
 AGENT="$(basename "$(pwd)")"
-TEMPLATE_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+TEMPLATE_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 AGENT_DIR="${TEMPLATE_ROOT}/agents/${AGENT}"
 
 # Load instance ID
 REPO_ENV="${TEMPLATE_ROOT}/.env"
 if [[ -f "${REPO_ENV}" ]]; then
-    BOS_INSTANCE_ID=$(grep '^BOS_INSTANCE_ID=' "${REPO_ENV}" | cut -d= -f2)
+    CRM_INSTANCE_ID=$(grep '^CRM_INSTANCE_ID=' "${REPO_ENV}" | cut -d= -f2)
 fi
-BOS_INSTANCE_ID="${BOS_INSTANCE_ID:-default}"
-BOS_ROOT="${BOS_ROOT:-${HOME}/.business-os/${BOS_INSTANCE_ID}}"
+CRM_INSTANCE_ID="${CRM_INSTANCE_ID:-default}"
+CRM_ROOT="${CRM_ROOT:-${HOME}/.claude-remote/${CRM_INSTANCE_ID}}"
 
-TMUX_SESSION="bos-${BOS_INSTANCE_ID}-${AGENT}"
+TMUX_SESSION="crm-${CRM_INSTANCE_ID}-${AGENT}"
 REASON="${2:-no reason specified}"
 
 # Log the restart
-LOG_DIR="${BOS_ROOT}/logs/${AGENT}"
+LOG_DIR="${CRM_ROOT}/logs/${AGENT}"
 mkdir -p "${LOG_DIR}"
 echo "[$(date -u +%Y-%m-%dT%H:%M:%SZ)] CLI restart with --continue. Reason: ${REASON}" >> "${LOG_DIR}/restarts.log"
 
@@ -65,7 +65,7 @@ nohup bash -c "
     # Kill old fast-checker and start fresh one
     pkill -f 'fast-checker.sh ${AGENT} ' 2>/dev/null || true
     sleep 1
-    FAST_CHECKER='${TEMPLATE_ROOT}/scripts/fast-checker.sh'
+    FAST_CHECKER='${TEMPLATE_ROOT}/core/scripts/fast-checker.sh'
     if [[ -f \"\$FAST_CHECKER\" ]]; then
         bash \"\$FAST_CHECKER\" '${AGENT}' '${TMUX_SESSION}' '${AGENT_DIR}' '${TEMPLATE_ROOT}' \
             >> '${LOG_DIR}/fast-checker.log' 2>&1 &

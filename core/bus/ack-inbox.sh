@@ -5,9 +5,19 @@
 
 set -euo pipefail
 
-BOS_ROOT="${BOS_ROOT:-${HOME}/.business-os}"
-BOS_AGENT_NAME="$(basename "$(pwd)")"
-ME="${BOS_AGENT_NAME}"
+# Resolve CRM_ROOT with instance ID
+if [[ -z "${CRM_ROOT:-}" ]]; then
+    SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+    TEMPLATE_ROOT="${CRM_TEMPLATE_ROOT:-$(cd "$SCRIPT_DIR/../.." && pwd)}"
+    REPO_ENV="${TEMPLATE_ROOT}/.env"
+    if [[ -f "${REPO_ENV}" ]]; then
+        CRM_INSTANCE_ID=$(grep '^CRM_INSTANCE_ID=' "${REPO_ENV}" | cut -d= -f2)
+    fi
+    CRM_INSTANCE_ID="${CRM_INSTANCE_ID:-default}"
+    CRM_ROOT="${HOME}/.claude-remote/${CRM_INSTANCE_ID}"
+fi
+CRM_AGENT_NAME="$(basename "$(pwd)")"
+ME="${CRM_AGENT_NAME}"
 
 MSG_ID="${1:-}"
 if [[ -z "${MSG_ID}" ]]; then
@@ -15,8 +25,8 @@ if [[ -z "${MSG_ID}" ]]; then
     exit 1
 fi
 
-INFLIGHT_DIR="${BOS_ROOT}/inflight/${ME}"
-PROCESSED_DIR="${BOS_ROOT}/processed/${ME}"
+INFLIGHT_DIR="${CRM_ROOT}/inflight/${ME}"
+PROCESSED_DIR="${CRM_ROOT}/processed/${ME}"
 mkdir -p "${PROCESSED_DIR}"
 
 # Find the message file in inflight by msg_id

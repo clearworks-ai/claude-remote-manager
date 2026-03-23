@@ -6,7 +6,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ../../bus/hook-planmode-telegram.sh",
+            "command": "bash ../../core/bus/hook-planmode-telegram.sh",
             "timeout": 1860
           }
         ]
@@ -15,7 +15,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ../../bus/hook-permission-telegram.sh",
+            "command": "bash ../../core/bus/hook-permission-telegram.sh",
             "timeout": 1860
           }
         ]
@@ -27,7 +27,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ../../bus/hook-ask-telegram.sh",
+            "command": "bash ../../core/bus/hook-ask-telegram.sh",
             "timeout": 10
           }
         ]
@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash ../../scripts/crash-alert.sh",
+            "command": "bash ../../core/scripts/crash-alert.sh",
             "timeout": 10
           }
         ]

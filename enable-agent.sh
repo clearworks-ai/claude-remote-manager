@@ -9,17 +9,17 @@ TEMPLATE_ROOT="$(cd "$(dirname "$0")" && pwd)"
 # Load instance ID
 REPO_ENV="${TEMPLATE_ROOT}/.env"
 if [[ -f "${REPO_ENV}" ]]; then
-    BOS_INSTANCE_ID=$(grep '^BOS_INSTANCE_ID=' "${REPO_ENV}" | cut -d= -f2)
+    CRM_INSTANCE_ID=$(grep '^CRM_INSTANCE_ID=' "${REPO_ENV}" | cut -d= -f2)
 fi
-BOS_INSTANCE_ID="${BOS_INSTANCE_ID:-default}"
-BOS_ROOT="${HOME}/.business-os/${BOS_INSTANCE_ID}"
+CRM_INSTANCE_ID="${CRM_INSTANCE_ID:-default}"
+CRM_ROOT="${HOME}/.claude-remote/${CRM_INSTANCE_ID}"
 
 AGENT="${1:?Usage: enable-agent.sh <agent_name> [--restart]}"
 RESTART=false
 [[ "${2:-}" == "--restart" ]] && RESTART=true
 
 AGENT_DIR="${TEMPLATE_ROOT}/agents/${AGENT}"
-ENABLED_FILE="${BOS_ROOT}/config/enabled-agents.json"
+ENABLED_FILE="${CRM_ROOT}/config/enabled-agents.json"
 
 # Validate agent directory exists
 if [[ ! -d "${AGENT_DIR}" ]]; then
@@ -52,43 +52,43 @@ if [[ "${RESTART}" == "true" ]]; then
     echo "Restarting ${AGENT}..."
 
     # Reset crash counter
-    rm -f "${BOS_ROOT}/logs/${AGENT}/.crash_count_today"
+    rm -f "${CRM_ROOT}/logs/${AGENT}/.crash_count_today"
 
     # Reload launchd
-    PLIST="${HOME}/Library/LaunchAgents/com.business-os.${BOS_INSTANCE_ID}.${AGENT}.plist"
+    PLIST="${HOME}/Library/LaunchAgents/com.claude-remote.${CRM_INSTANCE_ID}.${AGENT}.plist"
     if [[ -f "${PLIST}" ]]; then
         launchctl unload "${PLIST}" 2>/dev/null || true
         launchctl load "${PLIST}"
         echo "${AGENT} restarted."
     else
         echo "No launchd plist found. Running full setup..."
-        "${TEMPLATE_ROOT}/scripts/generate-launchd.sh" "${AGENT}"
+        "${TEMPLATE_ROOT}/core/scripts/generate-launchd.sh" "${AGENT}"
     fi
     exit 0
 fi
 
 # Set environment for the agent
-export BOS_AGENT_NAME="${AGENT}"
-export BOS_INSTANCE_ID="${BOS_INSTANCE_ID}"
-export BOS_ROOT="${BOS_ROOT}"
-export BOS_TEMPLATE_ROOT="${TEMPLATE_ROOT}"
+export CRM_AGENT_NAME="${AGENT}"
+export CRM_INSTANCE_ID="${CRM_INSTANCE_ID}"
+export CRM_ROOT="${CRM_ROOT}"
+export CRM_TEMPLATE_ROOT="${TEMPLATE_ROOT}"
 
 # Ensure all scripts are executable
 chmod +x "${TEMPLATE_ROOT}/"*.sh 2>/dev/null || true
-chmod +x "${TEMPLATE_ROOT}/scripts/"*.sh 2>/dev/null || true
-chmod +x "${TEMPLATE_ROOT}/bus/"*.sh 2>/dev/null || true
+chmod +x "${TEMPLATE_ROOT}/core/scripts/"*.sh 2>/dev/null || true
+chmod +x "${TEMPLATE_ROOT}/core/bus/"*.sh 2>/dev/null || true
 
 # Create per-agent state directories
-mkdir -p "${BOS_ROOT}/inbox/${AGENT}"
-mkdir -p "${BOS_ROOT}/outbox/${AGENT}"
-mkdir -p "${BOS_ROOT}/processed/${AGENT}"
-mkdir -p "${BOS_ROOT}/inflight/${AGENT}"
-mkdir -p "${BOS_ROOT}/logs/${AGENT}"
+mkdir -p "${CRM_ROOT}/inbox/${AGENT}"
+mkdir -p "${CRM_ROOT}/outbox/${AGENT}"
+mkdir -p "${CRM_ROOT}/processed/${AGENT}"
+mkdir -p "${CRM_ROOT}/inflight/${AGENT}"
+mkdir -p "${CRM_ROOT}/logs/${AGENT}"
 
 # Generate and load launchd plist
 echo ""
 echo "Setting up persistence with launchd..."
-"${TEMPLATE_ROOT}/scripts/generate-launchd.sh" "${AGENT}"
+"${TEMPLATE_ROOT}/core/scripts/generate-launchd.sh" "${AGENT}"
 
 # Update enabled status
 jq ".\"${AGENT}\".enabled = true | .\"${AGENT}\".status = \"configured\"" "${ENABLED_FILE}" > "${ENABLED_FILE}.tmp"
@@ -100,7 +100,7 @@ echo "  ${AGENT} is now LIVE"
 echo "========================================="
 echo ""
 echo "  launchd: loaded (auto-restarts on crash)"
-echo "  tmux: attach with: tmux attach -t bos-${BOS_INSTANCE_ID}-${AGENT}"
+echo "  tmux: attach with: tmux attach -t crm-${CRM_INSTANCE_ID}-${AGENT}"
 echo ""
 echo "  Test it: Send a message to the agent's Telegram bot"
 echo ""

@@ -11,8 +11,8 @@ set -uo pipefail
 INPUT=$(cat)
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-TEMPLATE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-AGENT="${BOS_AGENT_NAME:-$(basename "$(pwd)")}"
+TEMPLATE_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+AGENT="${CRM_AGENT_NAME:-$(basename "$(pwd)")}"
 
 # Source .env for BOT_TOKEN and CHAT_ID
 ENV_FILE="${TEMPLATE_ROOT}/agents/${AGENT}/.env"
@@ -45,8 +45,8 @@ if [[ -z "$PLAN_CONTENT" ]]; then
 fi
 
 # Generate unique ID
-UNIQUE_ID="${$}_$(date +%s)_${RANDOM}"
-RESPONSE_FILE="/tmp/bos-hook-response-${AGENT}-${UNIQUE_ID}.json"
+UNIQUE_ID=$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')
+RESPONSE_FILE="/tmp/crm-hook-response-${AGENT}-${UNIQUE_ID}.json"
 
 cleanup() {
     rm -f "$RESPONSE_FILE"
@@ -100,6 +100,6 @@ while [[ $ELAPSED -lt 1800 ]]; do
 done
 
 # Timeout - auto-approve so agents aren't blocked
-bash "${TEMPLATE_ROOT}/bus/send-telegram.sh" "${CHAT_ID}" "Plan review TIMED OUT (auto-approved): ${AGENT}" > /dev/null 2>&1 || true
+bash "${TEMPLATE_ROOT}/core/bus/send-telegram.sh" "${CHAT_ID}" "Plan review TIMED OUT (auto-approved): ${AGENT}" > /dev/null 2>&1 || true
 
 echo '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"allow"}}}'

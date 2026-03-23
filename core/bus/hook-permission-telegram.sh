@@ -10,8 +10,8 @@ set -uo pipefail
 INPUT=$(cat)
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-TEMPLATE_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-AGENT="${BOS_AGENT_NAME:-$(basename "$(pwd)")}"
+TEMPLATE_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+AGENT="${CRM_AGENT_NAME:-$(basename "$(pwd)")}"
 
 # Source .env for BOT_TOKEN and CHAT_ID
 ENV_FILE="${TEMPLATE_ROOT}/agents/${AGENT}/.env"
@@ -62,8 +62,8 @@ ${CONTENT_PREVIEW}"
 esac
 
 # Generate unique ID for this request
-UNIQUE_ID="${$}_$(date +%s)_${RANDOM}"
-RESPONSE_FILE="/tmp/bos-hook-response-${AGENT}-${UNIQUE_ID}.json"
+UNIQUE_ID=$(head -c 16 /dev/urandom | od -An -tx1 | tr -d ' \n')
+RESPONSE_FILE="/tmp/crm-hook-response-${AGENT}-${UNIQUE_ID}.json"
 
 cleanup() {
     rm -f "$RESPONSE_FILE"
@@ -94,7 +94,7 @@ KEYBOARD=$(jq -n -c \
         {text: "Deny", callback_data: $deny}
     ]]}')
 
-bash "${TEMPLATE_ROOT}/bus/send-telegram.sh" "${CHAT_ID}" "${MESSAGE}" "${KEYBOARD}" > /dev/null 2>&1 || {
+bash "${TEMPLATE_ROOT}/core/bus/send-telegram.sh" "${CHAT_ID}" "${MESSAGE}" "${KEYBOARD}" > /dev/null 2>&1 || {
     echo '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"deny","message":"Failed to send permission request to Telegram"}}}'
     exit 0
 }
@@ -121,6 +121,6 @@ while [[ $ELAPSED -lt $TIMEOUT ]]; do
 done
 
 # Timeout - deny and notify
-bash "${TEMPLATE_ROOT}/bus/send-telegram.sh" "${CHAT_ID}" "Permission request TIMED OUT (auto-denied): ${TOOL_NAME}" > /dev/null 2>&1 || true
+bash "${TEMPLATE_ROOT}/core/bus/send-telegram.sh" "${CHAT_ID}" "Permission request TIMED OUT (auto-denied): ${TOOL_NAME}" > /dev/null 2>&1 || true
 
 echo '{"hookSpecificOutput":{"hookEventName":"PermissionRequest","decision":{"behavior":"deny","message":"Timed out waiting for Telegram approval (30m)"}}}'

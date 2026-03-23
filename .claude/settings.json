@@ -5,7 +5,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash scripts/crash-alert.sh",
+            "command": "bash core/scripts/crash-alert.sh",
             "timeout": 10
           }
         ]

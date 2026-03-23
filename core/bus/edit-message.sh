@@ -4,9 +4,9 @@
 
 set -euo pipefail
 
-TEMPLATE_ROOT="${BOS_TEMPLATE_ROOT:-$(cd "$(dirname "$0")/.." && pwd)}"
-BOS_AGENT_NAME="$(basename "$(pwd)")"
-ME="${BOS_AGENT_NAME}"
+TEMPLATE_ROOT="${CRM_TEMPLATE_ROOT:-$(cd "$(dirname "$0")/../.." && pwd)}"
+CRM_AGENT_NAME="$(basename "$(pwd)")"
+ME="${CRM_AGENT_NAME}"
 
 CHAT_ID="$1"
 MESSAGE_ID="$2"
