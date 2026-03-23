@@ -21,6 +21,14 @@ if [[ -n "$MISSING" ]]; then
     exit 1
 fi
 
+# Check that claude is authenticated (must have been run interactively at least once)
+if ! claude --version >/dev/null 2>&1; then
+    echo "ERROR: Claude CLI is installed but may not be set up."
+    echo "  Run 'claude' in a terminal first to accept terms and log in."
+    echo "  Once that works, run this again."
+    exit 1
+fi
+
 TEMPLATE_ROOT="$(cd "$(dirname "$0")" && pwd)"
 
 # Get instance ID from argument, .env, or default
