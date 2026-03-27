@@ -301,6 +301,7 @@ trap graceful_shutdown SIGTERM SIGINT
             # Kill old fast-checker and start fresh one
             # Remove PID lock so the new instance can acquire it
             rm -f "${CRM_ROOT}/state/${AGENT}.fast-checker.pid"
+            rm -rf "${CRM_ROOT}/state/${AGENT}.fast-checker.lock"
             pkill -f "fast-checker.sh ${AGENT} " 2>/dev/null || true
             sleep 1
             if [[ -f "${TEMPLATE_ROOT}/core/scripts/fast-checker.sh" ]]; then
@@ -354,6 +355,7 @@ while tmux has-session -t "${TMUX_SESSION}" 2>/dev/null; do
     if [[ "$FC_ALIVE" == "false" ]]; then
         echo "$(date -u +%Y-%m-%dT%H:%M:%SZ) fast-checker died, restarting" >> "${LOG_DIR}/fast-checker.log"
         rm -f "$FC_PIDFILE"
+        rm -rf "${CRM_ROOT}/state/${AGENT}.fast-checker.lock"
         bash "${FAST_CHECKER}" "${AGENT}" "${TMUX_SESSION}" "${AGENT_DIR}" "${TEMPLATE_ROOT}" \
             >> "${LOG_DIR}/fast-checker.log" 2>&1 &
         FAST_PID=$!
@@ -372,6 +374,7 @@ if [[ -f "$FC_PIDFILE" ]]; then
     FC_KILL_PID=$(cat "$FC_PIDFILE" 2>/dev/null || echo "")
     [[ -n "$FC_KILL_PID" ]] && kill "$FC_KILL_PID" 2>/dev/null || true
     rm -f "$FC_PIDFILE"
+    rm -rf "${CRM_ROOT}/state/${AGENT}.fast-checker.lock"
 fi
 if [[ -n "${FAST_PID:-}" ]]; then
     kill "${FAST_PID}" 2>/dev/null || true

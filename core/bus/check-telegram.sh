@@ -50,10 +50,15 @@ fi
 MESSAGES=$(echo "${RESPONSE}" | jq --arg uid "${ALLOWED_USER}" \
     '[.result[] | select(.message.from.id == ($uid | tonumber) or .callback_query.from.id == ($uid | tonumber))]')
 
-# Update offset
+# Calculate new offset but DON'T write it yet.
+# The caller (fast-checker.sh) writes it AFTER successful injection
+# so messages aren't lost if the process dies between poll and inject.
 NEW_OFFSET=$(echo "${RESPONSE}" | jq '.result[-1].update_id + 1 // empty')
+
+# Output new offset on fd3 so caller can commit it after successful injection.
+# Falls back to stderr if fd3 not open.
 if [[ -n "${NEW_OFFSET}" ]]; then
-    echo "${NEW_OFFSET}" > "${OFFSET_FILE}"
+    echo "__OFFSET__:${NEW_OFFSET}" >&3 2>/dev/null || echo "__OFFSET__:${NEW_OFFSET}" >&2 2>/dev/null || true
 fi
 
 MSG_COUNT=$(echo "${MESSAGES}" | jq 'length')
