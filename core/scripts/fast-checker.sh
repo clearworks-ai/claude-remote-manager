@@ -694,36 +694,5 @@ Reply using: bash ../../core/bus/send-message.sh ${FROM} normal '<your reply>' $
             > "${STATS_FILE}" 2>/dev/null
     fi
 
-    # --- Typing indicator while agent processes human message (Fix 9) ---
-    if [[ "$HUMAN_MSG_PENDING" == "true" ]]; then
-        if ! is_agent_idle; then
-            NOW_TS=$(date +%s)
-            if (( NOW_TS - TYPING_LAST_SENT >= 5 )); then
-                telegram_api_post "sendChatAction" \
-                    -H "Content-Type: application/json" \
-                    -d "$(jq -n -c --arg cid "$HUMAN_MSG_CHAT_ID" '{chat_id: $cid, action: "typing"}')" \
-                    > /dev/null 2>&1 || true
-                TYPING_LAST_SENT=$NOW_TS
-            fi
-        else
-            HUMAN_MSG_PENDING=false
-        fi
-    fi
-
-    # --- Health telemetry (Fix 7) — write stats every ~5 min ---
-    if (( POLL_COUNT % 300 == 0 )); then
-        NOW_TS=$(date +%s)
-        jq -n -c \
-            --argjson uptime "$((NOW_TS - SESSION_START))" \
-            --argjson inject_count "$INJECT_COUNT" \
-            --argjson inject_limit "$CONTEXT_MAX_INJECTIONS" \
-            --argjson hours_limit "$CONTEXT_MAX_HOURS" \
-            --argjson poll_count "$POLL_COUNT" \
-            --arg last_check "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
-            --arg agent_state "$(is_agent_idle && echo idle || echo busy)" \
-            '{uptime_s: $uptime, injects: $inject_count, inject_limit: $inject_limit, hours_limit: $hours_limit, polls: $poll_count, checked: $last_check, agent: $agent_state}' \
-            > "${STATS_FILE}" 2>/dev/null
-    fi
-
     sleep 1
 done
