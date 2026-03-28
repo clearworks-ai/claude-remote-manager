@@ -137,9 +137,10 @@ do_hard_restart() {
 # Check if agent is idle by looking at tmux pane
 is_agent_idle() {
     local pane_bottom
-    pane_bottom=$(tmux capture-pane -t "${TMUX_SESSION}:0.0" -p 2>/dev/null | grep -v '^$' | tail -3)
-    # Claude Code shows > prompt when idle, tool output/spinners when busy
-    echo "$pane_bottom" | grep -qE '^\s*>\s*$'
+    pane_bottom=$(tmux capture-pane -t "${TMUX_SESSION}:0.0" -p 2>/dev/null | grep -v '^$' | tail -5)
+    # Claude Code shows ❯ or > prompt when idle, tool output/spinners when busy
+    # Also check for status bar patterns (bypass permissions, context %) as idle indicators
+    echo "$pane_bottom" | grep -qE '^\s*(>|❯)\s*$' || echo "$pane_bottom" | grep -qE 'bypass permissions on'
 }
 
 # Auto-reply on Telegram when agent is busy processing
