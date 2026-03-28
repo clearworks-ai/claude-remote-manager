@@ -96,13 +96,14 @@ HUMAN_MSG_CHAT_ID=""
 TYPING_LAST_SENT=0
 HUMAN_MSG_PENDING_SINCE=0  # timestamp when last human msg arrived
 
-FROZEN_RESTART_MAX_SECONDS=300  # hard-restart if agent busy for 5+ min with pending human msg
+FROZEN_RESTART_MAX_SECONDS=600  # hard-restart if agent busy for 10+ min with pending human msg
 FROZEN_NUDGE_SENT=0  # whether we've sent a soft nudge before hard-restart
+BOOTSTRAP_GRACE_SECONDS=600  # skip frozen detection for first 10 min after startup
 
 # Passive frozen detection: detect stale agents even without human messages
 LAST_PANE_HASH=""
 PANE_UNCHANGED_SINCE=0  # timestamp when pane content last changed
-PASSIVE_FROZEN_THRESHOLD=600  # 10 min of zero pane change while busy = frozen
+PASSIVE_FROZEN_THRESHOLD=900  # 15 min of zero pane change while busy = frozen
 PASSIVE_FROZEN_TRIGGERED=false
 
 # Telemetry state file (Fix 7)
@@ -663,7 +664,9 @@ Reply using: bash ../../core/bus/send-message.sh ${FROM} normal '<your reply>' $
             fi
 
             # Frozen detection: if agent has been "busy" for too long, hard-restart
-            if (( HUMAN_MSG_PENDING_SINCE > 0 && PENDING_AGE >= FROZEN_RESTART_MAX_SECONDS )); then
+            # Skip during bootstrap grace period
+            UPTIME=$(( NOW_TS - SESSION_START ))
+            if (( UPTIME >= BOOTSTRAP_GRACE_SECONDS && HUMAN_MSG_PENDING_SINCE > 0 && PENDING_AGE >= FROZEN_RESTART_MAX_SECONDS )); then
                 log "FROZEN DETECTED: agent busy for ${PENDING_AGE}s with unhandled human msg — hard-restarting"
                 telegram_api_post "sendMessage" \
                     -H "Content-Type: application/json" \
@@ -693,7 +696,8 @@ Reply using: bash ../../core/bus/send-message.sh ${FROM} normal '<your reply>' $
             PASSIVE_FROZEN_TRIGGERED=false
         elif [[ "$PASSIVE_FROZEN_TRIGGERED" == "false" ]] && (( PANE_UNCHANGED_SINCE > 0 )); then
             STALE_DURATION=$(( NOW_TS - PANE_UNCHANGED_SINCE ))
-            if ! is_agent_idle && (( STALE_DURATION >= PASSIVE_FROZEN_THRESHOLD )); then
+            UPTIME_NOW=$(( NOW_TS - SESSION_START ))
+            if ! is_agent_idle && (( UPTIME_NOW >= BOOTSTRAP_GRACE_SECONDS && STALE_DURATION >= PASSIVE_FROZEN_THRESHOLD )); then
                 log "PASSIVE FROZEN: pane unchanged for ${STALE_DURATION}s while agent busy — hard-restarting"
                 PASSIVE_FROZEN_TRIGGERED=true
                 do_hard_restart "passive frozen: pane unchanged ${STALE_DURATION}s while busy"
