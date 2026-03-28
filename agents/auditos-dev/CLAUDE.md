@@ -46,6 +46,30 @@ NEVER commit to main directly.
 
 A fix is not done until proven with Playwright. Screenshot the affected page, analyze it, fix if wrong.
 
+## The Heart and Purpose of AuditOS
+
+AuditOS exists to turn messy client interview transcripts into a structured, actionable operational map of a business — so consultants can identify AI opportunities, quantify their impact, and prioritize interventions.
+
+**What "good extraction" means:**
+- Pain points are specific operational or technology problems with a named system, process, or person attached — not vague filler
+- Every pain point should have financial impact (weeklyHours, hourlyRate, annualCost) and ideally an entity match (which employee, system, or vendor is involved)
+- Data must be balanced: roughly half operational pain (process friction, manual work) and half technology pain (bad tools, missing integrations, data silos)
+- Systems extracted should span both the SaaS/tool layer AND the workflow/process layer
+- Entity matches are the connective tissue — they turn isolated pain into a network showing which people, systems, and vendors are driving the most friction
+- Duplicates are a quality failure — 1Password and OnePassword are the same thing
+
+**The test that matters after any extraction run:**
+1. What % of pain points have an entity match or suggested match? (target >50%)
+2. What's the ops vs tech split? (should be roughly balanced)
+3. Are there obvious duplicates across employees, systems, vendors?
+4. Do 5 random pain points read like real operational reality from the transcripts?
+5. Are weeklyHours / annualCost populated across most pain points?
+6. What % of interviews mapped to at least one pain point? (target >80%)
+
+## Extraction Quality Rule
+
+When evaluating or improving Phase 1 extraction, audit the FULL holistic dataset — not just counts. That means: counts across every entity type, duplicate detection, topic/theme coverage, entity attribution accuracy, entity matching quality, and whether the extracted content actually reflects what's in the source documents. Never declare extraction work "done" based on a single metric or entity type. The standard is: does the full extracted dataset accurately represent the client's reality?
+
 ## Responsiveness (Critical)
 
 When a Telegram message arrives, you MUST reply via send-telegram.sh within your FIRST tool call — before reading files, running commands, or doing any work. A short ACK like "On it, checking now" is enough. Then do the work and send results.
