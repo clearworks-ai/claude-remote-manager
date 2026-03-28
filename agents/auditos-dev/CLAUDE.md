@@ -48,23 +48,29 @@ A fix is not done until proven with Playwright. Screenshot the affected page, an
 
 ## The Heart and Purpose of AuditOS
 
-AuditOS exists to turn messy client interview transcripts into a structured, actionable operational map of a business — so consultants can identify AI opportunities, quantify their impact, and prioritize interventions.
+AuditOS produces the **Busywork Audit — AI Opportunity Assessment**: a 40-60 page deliverable that finds the expensive bottlenecks in a client's operations, puts real dollar figures on them, and builds a prioritized AI/automation roadmap with transparent ROI. The $10K engagement delivers a Pain Point Atlas, Workflow Maps, Integration Gap Analysis, AI Solution Portfolio (10-20 recommendations), ROI Analysis, and Implementation Roadmap.
 
-**What "good extraction" means:**
-- Pain points are specific operational or technology problems with a named system, process, or person attached — not vague filler
-- Every pain point should have financial impact (weeklyHours, hourlyRate, annualCost) and ideally an entity match (which employee, system, or vendor is involved)
-- Data must be balanced: roughly half operational pain (process friction, manual work) and half technology pain (bad tools, missing integrations, data silos)
-- Systems extracted should span both the SaaS/tool layer AND the workflow/process layer
-- Entity matches are the connective tissue — they turn isolated pain into a network showing which people, systems, and vendors are driving the most friction
-- Duplicates are a quality failure — 1Password and OnePassword are the same thing
+Every tab in AuditOS feeds a section of that deliverable:
+- **Pain Points** → Pain Point Atlas. Each one needs a category (ops vs tech), financial impact (weeklyHours × hourlyRate = annualCost), and entity matches connecting it to a person, system, or vendor. This is what becomes "$200K–$500K in annual savings."
+- **Walkthroughs** → Workflow Maps. Each workflow needs specific named steps, owners, time sinks, data quality risks, and bottleneck flags. These become the "10-20+ critical workflows mapped."
+- **Systems** → Integration Gap Analysis and tech stack assessment. Needs to cover SaaS tools, core ops software, and integration points — not just whatever was mentioned in passing.
+- **Vendors** → Vendor landscape for integration and replacement analysis.
+- **Employees** → Org context for attribution and interview coverage mapping.
+- **Tribal Knowledge** → Directly feeds the transition/documentation risk thread — a named theme for most non-profit clients.
+- **OSINT** → External context signals (funding, growth, tech signals) that shape recommendations.
+- **Stakeholder Wishes / Previous Attempts** → Informs solution fit and political feasibility of recommendations.
 
-**The test that matters after any extraction run:**
-1. What % of pain points have an entity match or suggested match? (target >50%)
-2. What's the ops vs tech split? (should be roughly balanced)
-3. Are there obvious duplicates across employees, systems, vendors?
-4. Do 5 random pain points read like real operational reality from the transcripts?
-5. Are weeklyHours / annualCost populated across most pain points?
-6. What % of interviews mapped to at least one pain point? (target >80%)
+**The quality standard for every tab:** Does this data give a consultant enough to write a specific, evidence-backed recommendation with real numbers? If a tab has vague entries, duplicates, or missing financial data — the deliverable gets weak recommendations. That's the failure mode.
+
+**After any extraction run, check every populated tab:**
+- Zero obvious duplicates (same entity named two ways)
+- Pain points balanced across operational and technology categories
+- Financial fields (weeklyHours, annualCost) populated on most pain points
+- >50% of pain points have at least one entity match or suggested match
+- Walkthroughs show named steps with owners and issue tags (time sink, data risk, etc.)
+- Tribal knowledge entries name a specific person and a specific thing they own
+- Systems and vendors reflect the real tool landscape, not just passing mentions
+- OSINT entries cite real external sources (sourceType: web_search)
 
 ## Extraction Quality Rule
 
