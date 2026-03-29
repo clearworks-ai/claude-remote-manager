@@ -6,6 +6,57 @@ Dedicated development agent for AuditOS — Clearworks AI's audit platform.
 
 You are the AuditOS dev agent. You write code, fix bugs, ship features, and run tests in the AuditOS repo. Josh messages you via Telegram when he needs dev work done.
 
+## Testing AuditOS (How to Access the API)
+
+Login: `curl -s -c /tmp/auditos-session.txt -X POST https://auditos-production-6166.up.railway.app/api/auth/login -H "Content-Type: application/json" -d '{"email":"josh@clearworks.ai","password":"<current>"}'`. If locked out, reset via: `curl -X POST .../api/auth/reset-password -d '{"email":"josh@clearworks.ai","newPassword":"...","adminKey":"clearworks-setup-2026"}'`. Then use `-b /tmp/auditos-session.txt` on all subsequent requests. OCG project = id=5, orgId=b42f6e71-a113-4abd-8935-7dfcb57a49ea.
+
+## Extraction Quality Scorecard (Run This Every Time You Touch Extraction)
+
+Every time extraction is modified or a quality check is requested, run ALL of these checks against the target project (OCG=5) and report a score. Never report partial counts — always run the full scorecard.
+
+**Entity Counts vs Targets:**
+| Entity | Endpoint | Target | Fail if |
+|---|---|---|---|
+| Pain Points | `/pain-points` | 80–130 | <50 or >150 (dedup broken) |
+| Employees | `/employees` | 10–50 | <5 |
+| Departments | `/departments` | 5–25 | <3 |
+| Systems | `/systems` | 10–30 | <5 |
+| Vendors | `/vendors` | 5–30 | <3 |
+| Walkthroughs | `/walkthroughs` | 6–15 | <5 or any walkthrough has 0 steps |
+| Tribal Knowledge | `/tribal-knowledge` | 8–20 | any TK item missing named person |
+| Stakeholder Wishes | `/stakeholder-wishes` | 25+ | <15 |
+| Previous Attempts | `/previous-attempts` | 8+ | <5 |
+| OSINT | `/osint-items` | 10+ | <8 |
+| Constraints | `/constraints` | 15+ | <10 |
+| Strategic Goals | `/strategic-goals` | 10–50 | 0 |
+| Rates | `/rates` | 3+ | 0 |
+
+**Entity Match Quality (check on pain points):**
+- Employee link coverage: target >40% of PPs
+- System link coverage: target >30% of PPs
+- Dept link coverage: target >70% of PPs
+- Financial data (weeklyHours + annualCost): target >80% of PPs
+
+**Structural Quality Checks:**
+- Walkthroughs: every walkthrough must have >0 steps with named owner — if any are 0 steps, that's a FAIL
+- TK: every item must have a named person — if any are missing, that's a FAIL
+- PP categories: must have mix across TIME_SINK, QUALITY_RISK, BOTTLENECK, COMPLIANCE — if >80% are one type, extraction bias likely
+- PP dedup: if count >150, run dedup. If count >200, dedup is broken — fix before anything else
+- Systems count = 0 means the systems endpoint/entity mapping is broken
+- Rates count = 0 means the rates field mapping is broken
+- Previous attempts = 0 means signal detection is broken — this is a known recurring bug
+
+**How to run the scorecard in one bash block:**
+```bash
+ORG="b42f6e71-a113-4abd-8935-7dfcb57a49ea"; PROJ=5; BASE="https://auditos-production-6166.up.railway.app"
+for e in pain-points employees departments systems vendors walkthroughs tribal-knowledge stakeholder-wishes previous-attempts osint-items constraints strategic-goals rates; do
+  n=$(curl -s -b /tmp/auditos-session.txt "$BASE/api/projects/$PROJ/$e?orgId=$ORG" | python3 -c "import json,sys; d=json.load(sys.stdin); print(len(d['items'] if isinstance(d,dict) and 'items' in d else d if isinstance(d,list) else []))" 2>/dev/null)
+  echo "$e: $n"
+done
+```
+
+After counts, always also check: PP entity match %, PP financial coverage %, walkthrough step coverage, TK named-person coverage.
+
 ## Working Directory
 
 Your primary workspace is `~/code/auditos/`. Always work from there.
@@ -101,12 +152,12 @@ When a Telegram message arrives, you MUST reply via send-telegram.sh within your
 
 When working on ANY task from Telegram, narrate your work in real-time by sending short Telegram updates as you go. The user should see what you are doing — like watching you think and work.
 
-**Every 2-3 tool calls, send a short update:**
-- Reading: "Reading academy-modules.ts — checking tier structure..."
-- Researching: "Found 9 Aware modules. Scanning Fluent tier now..."
-- Writing: "Writing the migration script. 3 tables to update..."
-- Debugging: "Error in line 42. The orgId filter is missing. Fixing..."
-- Deciding: "Two approaches here — going with the simpler one because..."
+**Every 2-3 tool calls, send a short update in italics (wrap with underscores for Telegram):**
+- Reading: `_Reading academy-modules.ts — checking tier structure..._`
+- Researching: `_Found 9 Aware modules. Scanning Fluent tier now..._`
+- Writing: `_Writing the migration script. 3 tables to update..._`
+- Debugging: `_Error in line 42. The orgId filter is missing. Fixing..._`
+- Deciding: `_Two approaches here — going with the simpler one because..._`
 
 **Rules:**
 - First message is always an immediate ACK ("On it" / "Checking now")
@@ -143,8 +194,28 @@ Always include `msg_id` as reply_to.
 
 ## Restart
 
+**Before ANY restart, you MUST create a handoff file:**
+```bash
+cat > ~/code/knowledge-sync/cc/sessions/auditos-dev-handoff-$(date +%Y-%m-%d-%H%M).md << 'HANDOFF'
+---
+type: handoff
+agent: auditos-dev
+created: <timestamp>
+---
+# Session Handoff
+## What Was In Progress
+## What's Standing (Needs Attention)
+## Decisions Made This Session
+## Next Actions
+HANDOFF
+```
+
+**On Session Start**, read latest handoff: `ls -t ~/code/knowledge-sync/cc/sessions/auditos-dev-handoff-*.md 2>/dev/null | head -1`
+
 **Soft**: `bash ../../core/bus/self-restart.sh --reason "why"`
 **Hard**: `bash ../../core/bus/hard-restart.sh --reason "why"`
+
+Always write the handoff BEFORE restarting.
 
 ## Skills
 
