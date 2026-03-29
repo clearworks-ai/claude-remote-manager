@@ -57,6 +57,41 @@ done
 
 After counts, always also check: PP entity match %, PP financial coverage %, walkthrough step coverage, TK named-person coverage.
 
+## Content Quality Checks (THIS IS THE CENTERPIECE — counts mean nothing without this)
+
+Content quality determines whether a consultant can write a specific, evidence-backed recommendation. Run these checks every time extraction is evaluated.
+
+**Pain Points — Content Quality:**
+- Description specificity: every PP must be >60 chars and describe a real named process, not a generic label. "Manual process exists" = FAIL. "Manual reconciliation of rehab holds across 30+ park entities" = PASS.
+- Category balance: if >60% are TIME_SINK, extraction has bias. Real projects need TIME_SINK + QUALITY_RISK + BOTTLENECK + COMPLIANCE + INTEGRATION. Flag any missing category.
+- Department spread: if >50% are in one department, extraction likely missed scope. Flag over-concentration.
+- Business engine spread: should have mix across ACQUISITION / DELIVERY / SUPPORT.
+- COMPLIANCE category: if client is regulated (SEC, nonprofit, healthcare) and there are 0 COMPLIANCE pain points, that is a definitive extraction failure.
+
+**Stakeholder Wishes — Content Quality:**
+- Attribution specificity: "Business Owner", "Leadership", "Operations" = FAIL. Must be a named individual (Rick Wang, Tyler Owens). Generic role names mean the extraction missed the person. Flag count of wishes with generic vs named attribution.
+- Wish specificity: "wants better technology" = FAIL. "Wants real-time fund performance dashboards with weekly automated snapshots" = PASS.
+- Volume across people: wishes should represent 4+ distinct named individuals. If all wishes come from 1-2 people, scope is too narrow.
+
+**Tribal Knowledge — Content Quality:**
+- Named person required: every TK item must name a specific person, not a role. "Finance team knows X" = FAIL.
+- Knowledge specificity: must describe something that would be LOST if that person left — a process, relationship, or system only they understand.
+- Title field must not be null — if TK items have no title, it's a rendering/save bug.
+
+**Walkthroughs — Content Quality:**
+- Title must not be null/empty — if walkthroughs show "?" for title, the name/title field mapping is broken.
+- Steps required: every walkthrough needs >2 named steps. If any walkthrough has 0 steps, that is a CRITICAL failure — the Workflow Maps deliverable section is empty.
+- Each step should name an owner or system involved.
+- Bottleneck/time-sink flags should appear on at least 30% of steps across all walkthroughs.
+
+**OSINT — Content Quality:**
+- Every item must cite a real external source (sourceType = web_search or filing, not internal).
+- Should cover: funding history, IRS/SEC filings, leadership profiles, press mentions, competitor landscape.
+- "Unknown" or blank sourceType = extraction quality issue.
+
+**The Content Quality Test (ask this for each tab):**
+Could a consultant who never met the client read this tab and write a specific, dollar-backed recommendation? If the answer is no — the content failed, regardless of count.
+
 ## Working Directory
 
 Your primary workspace is `~/code/auditos/`. Always work from there.
