@@ -9,11 +9,16 @@ You are the Academy agent for Clearpath. You help Josh build the Academy LMS fea
 ## On Session Start
 
 1. Read this file and `config.json`
-2. Run `bash /Users/joshweiss/code/claude-remote-manager/agents/academy-dev/scan-context.sh` to regenerate the Academy context map
-3. Read `ACADEMY-CONTEXT.md` (in this directory) for the full module inventory, file map, DB tables, API endpoints, and tier structure
-4. Set up crons from `config.json` via `/loop` (check CronList first - no duplicates)
-5. Read the clearpath repo's CLAUDE.md at `~/code/clearpath/CLAUDE.md`
-6. Notify Josh on Telegram that you're online
+2. **Read state files (PRIORITY):**
+   - `~/code/knowledge-sync/cc/sessions/academy-dev-state.json` — structured live state
+   - Latest `academy-dev-handoff-*.md` — human-readable context from last session
+3. Run `bash /Users/joshweiss/code/claude-remote-manager/agents/academy-dev/scan-context.sh` to regenerate the Academy context map
+4. Read `ACADEMY-CONTEXT.md` (in this directory) for the full module inventory, file map, DB tables, API endpoints, and tier structure
+5. Set up crons from `config.json` via `/loop` (check CronList first - no duplicates)
+6. Read the clearpath repo's CLAUDE.md at `~/code/clearpath/CLAUDE.md`
+7. **Resume work:** If `academy-dev-state.json` has a `current_task` with status `in_progress`, resume it immediately. Don't just mention it — do it.
+8. Notify Josh on Telegram: what session this is, what you're resuming, any urgent items
+9. **Initialize academy-dev-state.json** for this session (set session_start, clear completed_this_session)
 
 ## Working Directory
 
@@ -174,30 +179,83 @@ Crons expire after 3 days but are recreated from config on each restart.
 
 ---
 
-## Restart
+## Restart & Handoff (GSD-Style)
 
-**Before ANY restart, you MUST create a handoff file:**
-```bash
-cat > ~/code/knowledge-sync/cc/sessions/academy-dev-handoff-$(date +%Y-%m-%d-%H%M).md << 'HANDOFF'
+**Before ANY restart, context exhaustion, or session end, you MUST write both handoff files.** Update state.json continuously — don't wait until restart time.
+
+### File 1: `academy-dev-state.json` (Machine-Readable — Updated Continuously)
+
+Location: `~/code/knowledge-sync/cc/sessions/academy-dev-state.json`
+
+Update this file after every significant action (task start/complete, decision, blocker).
+
+```json
+{
+  "version": "1.0",
+  "agent": "academy-dev",
+  "timestamp": "<ISO8601>",
+  "session_start": "<ISO8601>",
+  "current_task": {
+    "description": "What I am literally doing right now",
+    "started_at": "<ISO8601>",
+    "status": "in_progress|paused|blocked",
+    "context": "Why I'm doing this, what approach I chose"
+  },
+  "completed_this_session": [
+    {"task": "description", "completed_at": "<ISO8601>", "commit": "hash or null"}
+  ],
+  "pending_tasks": [
+    {"task": "description", "priority": "urgent|normal|low", "source": "josh|cron|self"}
+  ],
+  "decisions_this_session": [
+    {"decision": "what", "context": "why", "saved_to": "file or null"}
+  ],
+  "blockers": [],
+  "mental_context": "Free-form: what I was thinking, what approach, what I'd do next"
+}
+```
+
+### File 2: `academy-dev-handoff-YYYY-MM-DD-HHMM.md` (Human-Readable — At Restart)
+
+Location: `~/code/knowledge-sync/cc/sessions/academy-dev-handoff-<timestamp>.md`
+
+```markdown
 ---
 type: handoff
 agent: academy-dev
-created: <timestamp>
+created: <ISO8601>
 ---
 # Session Handoff
-## What Was In Progress
-## What's Standing (Needs Attention)
-## Decisions Made This Session
-## Next Actions
-HANDOFF
+## Right Now (What I Was Literally Doing)
+<exact task, exact file, exact line of thinking>
+## Completed This Session
+<bullet list with commits>
+## Pending (Must Resume)
+<ordered by priority>
+## Decisions Made
+<with context>
+## Mental Context
+<approach, thinking, what to try next>
+## First Action for Next Session
+<single most important thing>
 ```
 
-**On Session Start**, read latest handoff: `ls -t ~/code/knowledge-sync/cc/sessions/academy-dev-handoff-*.md 2>/dev/null | head -1`
+### Continuous State Updates
+
+Update `academy-dev-state.json` when:
+- Starting a new task → set `current_task`
+- Completing a task → move to `completed_this_session`, clear `current_task`
+- Josh gives a decision → add to `decisions_this_session`
+- Something blocks → add to `blockers`
+
+Even if the session crashes without writing the markdown handoff, state.json has the latest snapshot.
+
+### Restart Commands
 
 **Soft** (preserves history): `bash ../../core/bus/self-restart.sh --reason "why"`
 **Hard** (fresh session): `bash ../../core/bus/hard-restart.sh --reason "why"`
 
-Sessions auto-restart with `--continue` every ~71 hours. On context exhaustion, notify user via Telegram then hard-restart. Always write the handoff BEFORE restarting.
+Sessions auto-restart with `--continue` every ~71 hours. On context exhaustion, notify user via Telegram then hard-restart. Always write BOTH handoff files BEFORE restarting.
 
 ---
 
