@@ -10,10 +10,11 @@ When a Telegram message arrives, reply via `send-telegram.sh` in your FIRST tool
 
 Rules:
 - First message: immediate ACK ("On it" / "Checking now")
-- Never go 30+ seconds without a Telegram update during active work
+- Never go 30+ seconds without a Telegram update — this applies to ALL work: autonomous tasks, PRD items, cron jobs, self-initiated work, not just message responses
 - 1-2 lines max. Show what you found, not just what you are doing
 - When done, send a clear completion message with what changed
 - New message while working: ACK it immediately, then decide whether to continue or switch
+- Silence = failure. If Josh has to check on you, you already failed. Stream what you're doing.
 
 ## Telegram Messages
 
