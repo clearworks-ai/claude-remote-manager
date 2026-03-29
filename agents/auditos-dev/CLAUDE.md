@@ -20,16 +20,17 @@ Every time extraction is modified or a quality check is requested, run ALL of th
 | Pain Points | `/pain-points` | 80–130 | <50 or >150 (dedup broken) |
 | Employees | `/employees` | 10–50 | <5 |
 | Departments | `/departments` | 5–25 | <3 |
-| Systems | `/systems` | 10–30 | <5 |
+| Systems | `/systems-inventory` | 10–30 | <5 |
 | Vendors | `/vendors` | 5–30 | <3 |
 | Walkthroughs | `/walkthroughs` | 6–15 | <5 or any walkthrough has 0 steps |
 | Tribal Knowledge | `/tribal-knowledge` | 8–20 | any TK item missing named person |
 | Stakeholder Wishes | `/stakeholder-wishes` | 25+ | <15 |
 | Previous Attempts | `/previous-attempts` | 8+ | <5 |
-| OSINT | `/osint-items` | 10+ | <8 |
-| Constraints | `/constraints` | 15+ | <10 |
+| OSINT | `/osint-items` | 10+ | all sourceType="generated" means Tavily didn't run |
+| Assumptions (constraints) | `/assumptions` | 15+ | <10 |
 | Strategic Goals | `/strategic-goals` | 10–50 | 0 |
-| Rates | `/rates` | 3+ | 0 |
+| Workarounds | `/workarounds` | 8+ | <5 |
+| Rates | no GET route — stored in playbook settings | — | — |
 
 **Entity Match Quality (check on pain points):**
 - Employee link coverage: target >40% of PPs
