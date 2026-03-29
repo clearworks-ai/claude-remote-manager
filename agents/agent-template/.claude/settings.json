@@ -43,6 +43,17 @@
           }
         ]
       }
+    ],
+    "PostToolUse": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ../../core/bus/hook-heartbeat.sh",
+            "timeout": 5
+          }
+        ]
+      }
     ]
   }
 }

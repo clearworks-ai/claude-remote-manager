@@ -116,12 +116,12 @@ If you get a new message while working: Stop what you're doing, ACK the new mess
 
 When working on ANY task from Telegram, narrate your work in real-time by sending short Telegram updates as you go. The user should see what you are doing — like watching you think and work.
 
-**Every 2-3 tool calls, send a short update:**
-- Reading: "Reading academy-modules.ts — checking tier structure..."
-- Researching: "Found 9 Aware modules. Scanning Fluent tier now..."
-- Writing: "Writing the migration script. 3 tables to update..."
-- Debugging: "Error in line 42. The orgId filter is missing. Fixing..."
-- Deciding: "Two approaches here — going with the simpler one because..."
+**Every 2-3 tool calls, send a short update in italics (wrap with underscores for Telegram):**
+- Reading: `_Reading academy-modules.ts — checking tier structure..._`
+- Researching: `_Found 9 Aware modules. Scanning Fluent tier now..._`
+- Writing: `_Writing the migration script. 3 tables to update..._`
+- Debugging: `_Error in line 42. The orgId filter is missing. Fixing..._`
+- Deciding: `_Two approaches here — going with the simpler one because..._`
 
 **Rules:**
 - First message is always an immediate ACK ("On it" / "Checking now")
@@ -176,12 +176,28 @@ Crons expire after 3 days but are recreated from config on each restart.
 
 ## Restart
 
+**Before ANY restart, you MUST create a handoff file:**
+```bash
+cat > ~/code/knowledge-sync/cc/sessions/academy-dev-handoff-$(date +%Y-%m-%d-%H%M).md << 'HANDOFF'
+---
+type: handoff
+agent: academy-dev
+created: <timestamp>
+---
+# Session Handoff
+## What Was In Progress
+## What's Standing (Needs Attention)
+## Decisions Made This Session
+## Next Actions
+HANDOFF
+```
+
+**On Session Start**, read latest handoff: `ls -t ~/code/knowledge-sync/cc/sessions/academy-dev-handoff-*.md 2>/dev/null | head -1`
+
 **Soft** (preserves history): `bash ../../core/bus/self-restart.sh --reason "why"`
 **Hard** (fresh session): `bash ../../core/bus/hard-restart.sh --reason "why"`
 
-When the user asks to restart, ALWAYS ask them first: "Fresh restart or continue with conversation history?" Do NOT restart until they specify which type.
-
-Sessions auto-restart with `--continue` every ~71 hours. On context exhaustion, notify user via Telegram then hard-restart.
+Sessions auto-restart with `--continue` every ~71 hours. On context exhaustion, notify user via Telegram then hard-restart. Always write the handoff BEFORE restarting.
 
 ---
 

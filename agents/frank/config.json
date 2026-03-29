@@ -9,7 +9,47 @@
     {
       "name": "heartbeat",
       "interval": "15m",
-      "prompt": "Heartbeat: check time (PST). Quick checks — (1) git log --oneline -5 for clearpath, lifecycle-killer, nonprofit-hub, note new commits. (2) Check Clearpath fireflies_meetings for last 2h, send Telegram summary to 6690120787 if new. (3) If briefing due and not sent today, dispatch it to a background Agent so the main session stays responsive for Telegram. Use background agents for any heavy data pulls (Gmail, Calendar). Otherwise HEARTBEAT_OK."
+      "prompt": "Heartbeat: check time (PST). Quick checks — (1) git log --oneline -5 for clearpath, lifecycle-killer, nonprofit-hub, note new commits. (2) Agent health: run 'launchctl list | grep claude-remote' — any agent with exit code != 0 or PID '-' is DEAD. Auto-restart dead agents with 'bash ../../enable-agent.sh <name> --restart' and alert Josh via Telegram 6690120787. (3) Check Clearpath fireflies_meetings for last 2h, send Telegram summary to 6690120787 if new. (4) If briefing due and not sent today, dispatch it to a background Agent so the main session stays responsive for Telegram. Use background agents for any heavy data pulls (Gmail, Calendar). Otherwise HEARTBEAT_OK."
+    },
+    {
+      "name": "linkedin-draft",
+      "schedule": "3 9 * * 1",
+      "prompt": "LinkedIn Draft: It's Monday 9 AM. Draft 1 LinkedIn post for the week. Pull from Clearpath Grow content pipeline seeds, recent wins from daily notes. Josh's voice: concrete to abstract, dollars first, peer-to-peer, no buzzwords. Send draft to Josh via Telegram (6690120787) for approval."
+    },
+    {
+      "name": "outreach-check",
+      "schedule": "2 10 * * 1,3,5",
+      "prompt": "Outreach Check: Mon/Wed/Fri 10 AM. Check pipeline status — read tasks/clearworks/active.md Sales section + check agent inbox for deal replies. Flag stale deals (>7 days no touch), upcoming follow-ups, prospect responses. Send summary to Josh via Telegram (6690120787). Under 5 bullets."
+    },
+    {
+      "name": "client-health",
+      "schedule": "4 9 * * 3",
+      "prompt": "Client Health: Wednesday 9 AM. Scan active clients in ~/code/knowledge-sync/areas/clearworks/clients/ and tasks/clearworks/active.md Client Delivery section. Flag >14 days no contact, stalled deliverables, overdue items. Send to Josh via Telegram (6690120787)."
+    },
+    {
+      "name": "pipeline-review",
+      "schedule": "3 15 * * 4",
+      "prompt": "Pipeline Review: Thursday 3 PM. Full sales pipeline status — read tasks/clearworks/active.md Sales section, check Fireflies transcripts this week. Summarize: active deals by stage, next actions, revenue at risk, wins. Send to Josh via Telegram (6690120787)."
+    },
+    {
+      "name": "forgot-anything",
+      "schedule": "7 11 * * 5",
+      "prompt": "Forgot Anything: Friday 11 AM. Scan the week for dropped threads: stale tasks, promises in daily notes not tracked, unanswered inbox messages, emails expecting replies. Send findings to Josh via Telegram (6690120787). If nothing dropped, say so."
+    },
+    {
+      "name": "weekly-cleanup",
+      "schedule": "3 10 * * 0",
+      "prompt": "Weekly Cleanup: Sunday 10 AM. Read active-tasks.md, tasks/clearworks/active.md, tasks/personal/active.md. (1) Archive completed items older than 7 days to a ## Completed section with dates. (2) Flag stale items (>7 days no update, no waiting-on reason). (3) Check milestones approaching this week — George topical dates, Havasupai prep weeks, meeting deadlines, AI Builder Group dates. (4) Sync any mismatches between task files and Todoist. Send summary to Josh via Telegram (6690120787): what was archived, what's stale, what's coming up this week."
+    },
+    {
+      "name": "milestone-check",
+      "schedule": "5 8 * * 1-5",
+      "prompt": "Milestone Check: Weekday 8 AM. Read active-tasks.md milestones section + tasks/personal/active.md recurring section. Check if anything is due today or tomorrow: George topical (Mondays), Havasupai prep milestones, batch cook (Sun+Wed), chia pudding (Sun+Wed night), eggs (Sunday), meeting deadlines. Send a short Telegram reminder to 6690120787 ONLY if something is actually due. If nothing due, skip silently."
+    },
+    {
+      "name": "weekly-synthesis",
+      "schedule": "3 16 * * 5",
+      "prompt": "Weekly Synthesis: Friday 4 PM. Read this week's daily notes (daily/YYYY-MM-DD.md for Mon-Fri), session files (cc/sessions/ from this week), git log --oneline -20 across clearpath + lifecycle-killer + nonprofit-hub, and completed tasks from active-tasks.md. Produce ~/code/knowledge-sync/cc/synthesis/week-of-YYYY-MM-DD.md with: what happened, what was decided, patterns emerging, and any durable facts to save as memory files. Feed into Friday 6 PM Weekly Review briefing."
     }
   ],
   "model": "claude-opus-4-6"

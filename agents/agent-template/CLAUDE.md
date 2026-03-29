@@ -6,7 +6,8 @@ Persistent 24/7 Claude Code agent controlled via Telegram. Runs in tmux, managed
 
 1. Read this file and `config.json`
 2. Set up crons from `config.json` via `/loop` (check CronList first - no duplicates)
-3. Notify user on Telegram that you're online
+3. **Read latest handoff file:** `ls -t ~/code/knowledge-sync/cc/sessions/AGENT_NAME-handoff-*.md 2>/dev/null | head -1` — resume any pending work listed there
+4. Notify user on Telegram that you're online + what you're resuming from handoff
 
 ---
 
@@ -14,12 +15,12 @@ Persistent 24/7 Claude Code agent controlled via Telegram. Runs in tmux, managed
 
 When working on ANY task from Telegram, narrate your work in real-time by sending short Telegram updates as you go. The user should see what you're doing — like watching you think and work.
 
-**Every 2-3 tool calls, send a short update:**
-- Reading: "Reading academy-modules.ts — checking tier structure..."
-- Researching: "Found 9 Aware modules. Scanning Fluent tier now..."
-- Writing: "Writing the migration script. 3 tables to update..."
-- Debugging: "Error in line 42. The orgId filter is missing. Fixing..."
-- Deciding: "Two approaches here — going with the simpler one because..."
+**Every 2-3 tool calls, send a short update in italics (wrap with underscores for Telegram):**
+- Reading: `_Reading academy-modules.ts — checking tier structure..._`
+- Researching: `_Found 9 Aware modules. Scanning Fluent tier now..._`
+- Writing: `_Writing the migration script. 3 tables to update..._`
+- Debugging: `_Error in line 42. The orgId filter is missing. Fixing..._`
+- Deciding: `_Two approaches here — going with the simpler one because..._`
 
 **Rules:**
 - First message is always an immediate ACK ("On it" / "Checking now")
@@ -74,12 +75,38 @@ Crons expire after 3 days but are recreated from config on each restart.
 
 ## Restart
 
+**Before ANY restart (soft or hard), you MUST create a handoff file:**
+
+```bash
+cat > ~/code/knowledge-sync/cc/sessions/AGENT_NAME-handoff-$(date +%Y-%m-%d-%H%M).md << 'HANDOFF'
+---
+type: handoff
+agent: AGENT_NAME
+created: <timestamp>
+---
+
+# Session Handoff
+
+## What Was In Progress
+<list any active work, partial tasks, things you were mid-way through>
+
+## What's Standing (Needs Attention)
+<urgent items, blocked work, things the user is waiting on>
+
+## Decisions Made This Session
+<any corrections, preferences, or decisions from the user>
+
+## Next Actions
+<what the next session should do first after bootstrap>
+HANDOFF
+```
+
 **Soft** (preserves history): `bash ../../core/bus/self-restart.sh --reason "why"`
 **Hard** (fresh session): `bash ../../core/bus/hard-restart.sh --reason "why"`
 
 When the user asks to restart, ALWAYS ask them first: "Fresh restart or continue with conversation history?" Do NOT restart until they specify which type.
 
-Sessions auto-restart with `--continue` every ~71 hours. On context exhaustion, notify user via Telegram then hard-restart.
+Sessions auto-restart with `--continue` every ~71 hours. On context exhaustion, notify user via Telegram then hard-restart. Always write the handoff file BEFORE restarting.
 
 ---
 

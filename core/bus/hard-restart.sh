@@ -41,9 +41,32 @@ touch "${CRM_ROOT}/state/${AGENT}.force-fresh"
 # Clear context tracking state so new session starts fresh
 rm -f "${CRM_ROOT}/state/${AGENT}.session-start"
 
-# Detach a subprocess to perform the restart after a short delay
-nohup bash -c "sleep 10 && launchctl unload '${PLIST}' 2>/dev/null; sleep 1 && launchctl load '${PLIST}'" \
-    >> "${LOG_DIR}/restarts.log" 2>&1 &
+# Detach a subprocess to perform the restart after a short delay.
+# Use kickstart -k (kill + restart) which is atomic and reliable on modern macOS.
+# Falls back to bootstrap if kickstart fails, and unload/load as last resort.
+DOMAIN_TARGET="gui/$(id -u)/com.claude-remote.${CRM_INSTANCE_ID}.${AGENT}"
+SERVICE_TARGET="com.claude-remote.${CRM_INSTANCE_ID}.${AGENT}"
+nohup bash -c "
+    sleep 10
+    # Method 1: kickstart -k (most reliable — atomic kill+restart)
+    if launchctl kickstart -k '${DOMAIN_TARGET}' 2>>'${LOG_DIR}/restarts.log'; then
+        echo '[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Restarted via kickstart -k' >> '${LOG_DIR}/restarts.log'
+    else
+        echo '[$(date -u +%Y-%m-%dT%H:%M:%SZ)] kickstart failed, trying bootout/bootstrap' >> '${LOG_DIR}/restarts.log'
+        # Method 2: bootout + bootstrap (modern replacement for unload/load)
+        launchctl bootout '${DOMAIN_TARGET}' 2>>'${LOG_DIR}/restarts.log' || true
+        sleep 2
+        if launchctl bootstrap 'gui/$(id -u)' '${PLIST}' 2>>'${LOG_DIR}/restarts.log'; then
+            echo '[$(date -u +%Y-%m-%dT%H:%M:%SZ)] Restarted via bootstrap' >> '${LOG_DIR}/restarts.log'
+        else
+            echo '[$(date -u +%Y-%m-%dT%H:%M:%SZ)] bootstrap failed, trying legacy unload/load' >> '${LOG_DIR}/restarts.log'
+            # Method 3: legacy unload/load (last resort)
+            launchctl unload '${PLIST}' 2>/dev/null || true
+            sleep 1
+            launchctl load '${PLIST}' 2>>'${LOG_DIR}/restarts.log'
+        fi
+    fi
+" >> "${LOG_DIR}/restarts.log" 2>&1 &
 disown
 
 echo "Hard-restart scheduled for ${AGENT} in ~10 seconds. New session will start fresh."

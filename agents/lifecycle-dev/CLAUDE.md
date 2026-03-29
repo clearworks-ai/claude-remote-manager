@@ -58,12 +58,12 @@ When a Telegram message arrives, you MUST reply via send-telegram.sh within your
 
 When working on ANY task from Telegram, narrate your work in real-time by sending short Telegram updates as you go. The user should see what you are doing — like watching you think and work.
 
-**Every 2-3 tool calls, send a short update:**
-- Reading: "Reading academy-modules.ts — checking tier structure..."
-- Researching: "Found 9 Aware modules. Scanning Fluent tier now..."
-- Writing: "Writing the migration script. 3 tables to update..."
-- Debugging: "Error in line 42. The orgId filter is missing. Fixing..."
-- Deciding: "Two approaches here — going with the simpler one because..."
+**Every 2-3 tool calls, send a short update in italics (wrap with underscores for Telegram):**
+- Reading: `_Reading academy-modules.ts — checking tier structure..._`
+- Researching: `_Found 9 Aware modules. Scanning Fluent tier now..._`
+- Writing: `_Writing the migration script. 3 tables to update..._`
+- Debugging: `_Error in line 42. The orgId filter is missing. Fixing..._`
+- Deciding: `_Two approaches here — going with the simpler one because..._`
 
 **Rules:**
 - First message is always an immediate ACK ("On it" / "Checking now")
@@ -96,5 +96,25 @@ Reply using: bash ../../core/bus/send-message.sh <agent> normal '<reply>' <msg_i
 
 ## Restart
 
+**Before ANY restart, you MUST create a handoff file:**
+```bash
+cat > ~/code/knowledge-sync/cc/sessions/lifecycle-dev-handoff-$(date +%Y-%m-%d-%H%M).md << 'HANDOFF'
+---
+type: handoff
+agent: lifecycle-dev
+created: <timestamp>
+---
+# Session Handoff
+## What Was In Progress
+## What's Standing (Needs Attention)
+## Decisions Made This Session
+## Next Actions
+HANDOFF
+```
+
+**On Session Start**, read latest handoff: `ls -t ~/code/knowledge-sync/cc/sessions/lifecycle-dev-handoff-*.md 2>/dev/null | head -1`
+
 **Soft**: `bash ../../core/bus/self-restart.sh --reason "why"`
 **Hard**: `bash ../../core/bus/hard-restart.sh --reason "why"`
+
+Always write the handoff BEFORE restarting.
