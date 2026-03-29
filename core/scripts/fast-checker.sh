@@ -103,7 +103,7 @@ BOOTSTRAP_GRACE_SECONDS=600  # skip frozen detection for first 10 min after star
 # Passive frozen detection: detect stale agents even without human messages
 LAST_PANE_HASH=""
 PANE_UNCHANGED_SINCE=0  # timestamp when pane content last changed
-PASSIVE_FROZEN_THRESHOLD=900  # 15 min of zero pane change while busy = frozen
+PASSIVE_FROZEN_THRESHOLD=1800  # 30 min of zero pane change while busy = frozen
 PASSIVE_FROZEN_TRIGGERED=false
 
 # Telemetry state file (Fix 7)
@@ -699,22 +699,47 @@ Reply using: bash ../../core/bus/send-message.sh ${FROM} normal '<your reply>' $
     fi
 
     # --- Passive frozen detection: catch stuck agents even without human messages ---
+    # Primary signal: heartbeat file written by PostToolUse hook (most reliable)
+    # Fallback: tmux pane hash comparison (for agents without heartbeat hook)
     if (( POLL_COUNT % 30 == 0 )); then
-        CURRENT_PANE=$(tmux capture-pane -t "${TMUX_SESSION}:0.0" -p 2>/dev/null | tail -20)
-        CURRENT_PANE_HASH=$(printf '%s' "$CURRENT_PANE" | shasum -a 256 2>/dev/null | cut -d' ' -f1)
         NOW_TS=$(date +%s)
+        UPTIME_NOW=$(( NOW_TS - SESSION_START ))
+        HEARTBEAT_FILE="${CRM_ROOT}/state/${AGENT}.heartbeat"
+        HEARTBEAT_AGE=-1
 
-        if [[ "$CURRENT_PANE_HASH" != "$LAST_PANE_HASH" ]]; then
-            LAST_PANE_HASH="$CURRENT_PANE_HASH"
-            PANE_UNCHANGED_SINCE=$NOW_TS
-            PASSIVE_FROZEN_TRIGGERED=false
-        elif [[ "$PASSIVE_FROZEN_TRIGGERED" == "false" ]] && (( PANE_UNCHANGED_SINCE > 0 )); then
-            STALE_DURATION=$(( NOW_TS - PANE_UNCHANGED_SINCE ))
-            UPTIME_NOW=$(( NOW_TS - SESSION_START ))
-            if ! is_agent_idle && (( UPTIME_NOW >= BOOTSTRAP_GRACE_SECONDS && STALE_DURATION >= PASSIVE_FROZEN_THRESHOLD )); then
-                log "PASSIVE FROZEN: pane unchanged for ${STALE_DURATION}s while agent busy — hard-restarting"
-                PASSIVE_FROZEN_TRIGGERED=true
-                do_hard_restart "passive frozen: pane unchanged ${STALE_DURATION}s while busy"
+        if [[ -f "$HEARTBEAT_FILE" ]]; then
+            # Heartbeat file exists — use it as primary activity signal
+            LAST_HEARTBEAT=$(cat "$HEARTBEAT_FILE" 2>/dev/null || echo "0")
+            if [[ "$LAST_HEARTBEAT" =~ ^[0-9]+$ ]] && (( LAST_HEARTBEAT > 0 )); then
+                HEARTBEAT_AGE=$(( NOW_TS - LAST_HEARTBEAT ))
+                if (( HEARTBEAT_AGE < PASSIVE_FROZEN_THRESHOLD )); then
+                    # Recent heartbeat — agent is alive, reset frozen state
+                    PASSIVE_FROZEN_TRIGGERED=false
+                    PANE_UNCHANGED_SINCE=$NOW_TS
+                elif [[ "$PASSIVE_FROZEN_TRIGGERED" == "false" ]] && ! is_agent_idle && (( UPTIME_NOW >= BOOTSTRAP_GRACE_SECONDS )); then
+                    log "PASSIVE FROZEN (heartbeat): no tool use for ${HEARTBEAT_AGE}s while agent busy — hard-restarting"
+                    PASSIVE_FROZEN_TRIGGERED=true
+                    do_hard_restart "passive frozen: heartbeat stale ${HEARTBEAT_AGE}s while busy"
+                fi
+            fi
+        fi
+
+        # Fallback: pane hash comparison (used when heartbeat file doesn't exist yet)
+        if (( HEARTBEAT_AGE < 0 )); then
+            CURRENT_PANE=$(tmux capture-pane -t "${TMUX_SESSION}:0.0" -p 2>/dev/null | tail -20)
+            CURRENT_PANE_HASH=$(printf '%s' "$CURRENT_PANE" | shasum -a 256 2>/dev/null | cut -d' ' -f1)
+
+            if [[ "$CURRENT_PANE_HASH" != "$LAST_PANE_HASH" ]]; then
+                LAST_PANE_HASH="$CURRENT_PANE_HASH"
+                PANE_UNCHANGED_SINCE=$NOW_TS
+                PASSIVE_FROZEN_TRIGGERED=false
+            elif [[ "$PASSIVE_FROZEN_TRIGGERED" == "false" ]] && (( PANE_UNCHANGED_SINCE > 0 )); then
+                STALE_DURATION=$(( NOW_TS - PANE_UNCHANGED_SINCE ))
+                if ! is_agent_idle && (( UPTIME_NOW >= BOOTSTRAP_GRACE_SECONDS && STALE_DURATION >= PASSIVE_FROZEN_THRESHOLD )); then
+                    log "PASSIVE FROZEN (pane): pane unchanged for ${STALE_DURATION}s while agent busy — hard-restarting"
+                    PASSIVE_FROZEN_TRIGGERED=true
+                    do_hard_restart "passive frozen: pane unchanged ${STALE_DURATION}s while busy"
+                fi
             fi
         fi
     fi
@@ -722,16 +747,51 @@ Reply using: bash ../../core/bus/send-message.sh ${FROM} normal '<your reply>' $
     # --- Health telemetry (Fix 7) — write stats every ~5 min ---
     if (( POLL_COUNT % 300 == 0 )); then
         NOW_TS=$(date +%s)
+        # Read heartbeat age for telemetry
+        HB_AGE_STAT=-1
+        HB_FILE_STAT="${CRM_ROOT}/state/${AGENT}.heartbeat"
+        if [[ -f "$HB_FILE_STAT" ]]; then
+            HB_TS=$(cat "$HB_FILE_STAT" 2>/dev/null || echo "0")
+            [[ "$HB_TS" =~ ^[0-9]+$ ]] && (( HB_TS > 0 )) && HB_AGE_STAT=$(( NOW_TS - HB_TS ))
+        fi
         jq -n -c \
             --argjson uptime "$((NOW_TS - SESSION_START))" \
             --argjson inject_count "$INJECT_COUNT" \
             --argjson inject_limit "$CONTEXT_MAX_INJECTIONS" \
             --argjson hours_limit "$CONTEXT_MAX_HOURS" \
             --argjson poll_count "$POLL_COUNT" \
+            --argjson heartbeat_age "$HB_AGE_STAT" \
             --arg last_check "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
             --arg agent_state "$(is_agent_idle && echo idle || echo busy)" \
-            '{uptime_s: $uptime, injects: $inject_count, inject_limit: $inject_limit, hours_limit: $hours_limit, polls: $poll_count, checked: $last_check, agent: $agent_state}' \
+            '{uptime_s: $uptime, injects: $inject_count, inject_limit: $inject_limit, hours_limit: $hours_limit, polls: $poll_count, heartbeat_age_s: $heartbeat_age, checked: $last_check, agent: $agent_state}' \
             > "${STATS_FILE}" 2>/dev/null
+    fi
+
+    # --- Idle-state dedup clearing + queued message detection ---
+    # When agent transitions from busy to idle, clear the dedup file so
+    # messages that were injected but not processed can be re-injected.
+    # Also detect Claude Code's "Press up to edit queued messages" state
+    # and auto-submit with Enter.
+    if (( POLL_COUNT % 5 == 0 )); then
+        if is_agent_idle; then
+            # Check for "queued messages" state — means input was pasted but not submitted
+            PANE_BOTTOM=$(tmux capture-pane -t "${TMUX_SESSION}:0.0" -p 2>/dev/null | tail -5)
+            if echo "$PANE_BOTTOM" | grep -qi "queued messages\|Press up to edit"; then
+                log "QUEUED MSG FIX: detected 'queued messages' state — sending Enter to submit"
+                tmux send-keys -t "${TMUX_SESSION}:0.0" Enter
+            fi
+
+            # Clear dedup file when agent is idle — allows re-injection of unprocessed messages
+            if [[ "${AGENT_WAS_BUSY:-false}" == "true" ]]; then
+                if [[ -f "$DEDUP_FILE" ]]; then
+                    log "DEDUP CLEAR: agent returned to idle — clearing dedup file for fresh message injection"
+                    rm -f "$DEDUP_FILE"
+                fi
+                AGENT_WAS_BUSY=false
+            fi
+        else
+            AGENT_WAS_BUSY=true
+        fi
     fi
 
     sleep 1
