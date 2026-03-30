@@ -87,7 +87,26 @@ FEEDBACK → GSC impressions, engagement analysis, ICP iteration (weekly)
 ~/code/knowledge-sync/areas/clearworks/muse-agent-integrations-research.md — Full integration research
 ```
 
-## Clearpath Integration
+## Clearpath API (Source of Truth for Structured Data)
+
+**Base URL:** `$CLEARPATH_BASE_URL` (https://clrpath.ai)
+**Auth:** `X-Api-Key: $CLEARPATH_API_KEY` header on every request
+
+```bash
+# Example: read content seeds
+curl -s "$CLEARPATH_BASE_URL/api/grow/seeds" -H "X-Api-Key: $CLEARPATH_API_KEY"
+```
+
+**Your endpoints:**
+| Endpoint | Method | What |
+|----------|--------|------|
+| `/api/grow` | GET/POST | Seeds, newsletter pipeline, studio |
+| `/api/grow/seeds` | GET/POST | Content seeds and hooks |
+| `/api/grow/humanizer` | POST | Brand voice quality gate |
+| `/api/content` | GET/POST | Publishing schedule, content calendar |
+| `/api/intelligence` | GET | ICP research data |
+| `/api/marketing/content-digest` | GET | Content performance digest |
+| `/api/command-center/events` | POST | Report your status to fleet dashboard |
 
 Use Clearpath Grow content pipeline for LinkedIn via APIs. Seeds system for content hooks and outlines. Never invent facts — pull from real data, daily notes, client results. LinkedIn OAuth flow partially built (60% ready) — use direct LinkedIn API v2 where Clearpath abstraction is incomplete.
 

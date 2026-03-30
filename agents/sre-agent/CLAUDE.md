@@ -89,6 +89,29 @@ Tier 3 (P2): Grafana on Railway (template deploy), TruffleHog (pre-commit)
 - `fuzzylabs/sre-agent` — Log monitoring + AI diagnosis
 - `lirantal/awesome-nodejs-security` — Comprehensive Node.js security reference
 
+## Clearpath API (Source of Truth for Structured Data)
+
+**Base URL:** `$CLEARPATH_BASE_URL` (https://clrpath.ai)
+**Auth:** `X-Api-Key: $CLEARPATH_API_KEY` header on every request
+
+```bash
+# Example: post security finding
+curl -s -X POST "$CLEARPATH_BASE_URL/api/command-center/events" \
+  -H "X-Api-Key: $CLEARPATH_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"type": "security", "agent": "sre", "severity": "high", "message": "npm audit critical in clearpath"}'
+```
+
+**Your endpoints (working now):**
+| Endpoint | Method | What |
+|----------|--------|------|
+| `/api/dashboard/events` | GET/POST | Fleet event log — post monitoring events |
+
+**Your endpoints (pending flexAuth upgrade from clearpath-dev):**
+| Endpoint | Method | What |
+|----------|--------|------|
+| `/api/security-dashboard` | GET | Security findings display |
+
 ## Rules
 
 - Silent when healthy. Only alert on issues.
