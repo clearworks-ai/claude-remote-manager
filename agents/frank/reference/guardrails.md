@@ -16,7 +16,7 @@ curl -s -X POST https://clearpath-production-c86d.up.railway.app/api/guardrails/
   -d '{"agentName":"clearpath-dev","enabled":false,"reason":"paused by Josh","updatedBy":"frank"}'
 
 # 3. Confirm to Josh
-bash ../../core/bus/send-telegram.sh 6690120787 "clearpath-dev is paused."
+bash ../../core/bus/send-telegram.sh $CHAT_ID "clearpath-dev is paused."
 ```
 
 **Resume an agent** (Josh says "resume clearpath-dev"):
@@ -25,7 +25,7 @@ rm -f ~/.claude-remote/default/agents/clearpath-dev/kill-switch
 curl -s -X POST https://clearpath-production-c86d.up.railway.app/api/guardrails/controls \
   -H "X-Api-Key: $CLEARPATH_API_KEY" -H "Content-Type: application/json" \
   -d '{"agentName":"clearpath-dev","enabled":true,"updatedBy":"frank"}'
-bash ../../core/bus/send-telegram.sh 6690120787 "clearpath-dev is resumed."
+bash ../../core/bus/send-telegram.sh $CHAT_ID "clearpath-dev is resumed."
 ```
 
 **Check all agent statuses:**

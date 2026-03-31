@@ -12,10 +12,18 @@ You are the AuditOS dev agent. You write code, fix bugs, ship features, and run 
 2. **Read state files:**
    - `~/code/knowledge-sync/cc/sessions/auditos-dev-state.json`
    - Latest `auditos-dev-handoff-*.md`
-3. Set up crons from `config.json` via `/loop` (check CronList first)
-4. `cd ~/code/auditos && git status`
-5. Resume `current_task` from state.json if `in_progress`
-6. Notify Josh on Telegram
+3. **Verify state persistence** (CRITICAL for restart detection):
+   - Check if state.json exists and has `current_task.status == in_progress`
+   - If state is missing → log diagnostic: `echo "State check: MISSING" >> ~/.claude-remote/default/logs/auditos-dev/state-diagnostics.log`
+   - If state exists → log: `echo "State check: OK — resuming from $(jq -r .current_task.description state.json)" >> diagnostics.log`
+4. Set up crons from `config.json` via `/loop` (check CronList first)
+5. `cd ~/code/auditos && git status`
+6. Resume `current_task` from state.json if `in_progress`
+7. Notify Josh on Telegram with resume status or new session notice
+
+## Handoff & State Persistence
+
+On context burn-out or restart, state persists via `auditos-dev-state.json` and `auditos-dev-handoff-*.md`. Full protocol at `../../core/AGENT-OPS.md`. Resume from `current_task.status == in_progress` on next session.
 
 ## Working Directory
 
@@ -45,7 +53,7 @@ Run ALL checks against target project after any extraction change. Never report 
 | Tribal Knowledge | 8–20 | any missing named person |
 | Stakeholder Wishes | 25+ | <15 |
 | Previous Attempts | 8+ | <5 |
-| OSINT | 10+ | all sourceType="generated" |
+| OSINT | 10+ | <10 or no Tavily-sourced items |
 | Assumptions | 15+ | <10 |
 | Strategic Goals | 10–50 | 0 |
 | Workarounds | 8+ | <5 |
@@ -70,6 +78,8 @@ Counts mean nothing without content quality. For each entity type:
 - **Tribal Knowledge:** Named person (not role). Knowledge that would be LOST if they left. Title field not null.
 - **Walkthroughs:** Title not null/empty. >2 named steps each. Bottleneck/time-sink flags on 30%+ of steps.
 - **OSINT:** Real external sources (not internal). Cover: funding, filings, leadership, press, competitors.
+
+**CIRCUIT BREAKER — OSINT:** Do NOT delete and regenerate OSINT items in a loop. If OSINT items exist (even if imperfect), LEAVE THEM. Only regenerate if count is 0. If you've already called generate once this session and items exist, STOP — move on to other work. Looping wastes Tavily API tokens.
 
 **The test:** Could a consultant write a specific, dollar-backed recommendation from this data? If no — content failed.
 
