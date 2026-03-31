@@ -21,6 +21,15 @@ CRM_ROOT="${CRM_ROOT:-${HOME}/.claude-remote/${CRM_INSTANCE_ID}}"
 PLIST="${HOME}/Library/LaunchAgents/com.claude-remote.${CRM_INSTANCE_ID}.${AGENT}.plist"
 REASON="${2:-no reason specified}"
 
+# Validate handoff state before allowing restart
+VALIDATE_SCRIPT="${TEMPLATE_ROOT}/core/bus/validate-handoff.sh"
+if [[ -f "${VALIDATE_SCRIPT}" ]]; then
+    if ! bash "${VALIDATE_SCRIPT}" "${AGENT}"; then
+        echo "RESTART BLOCKED: Handoff validation failed. Update state file first." >&2
+        exit 1
+    fi
+fi
+
 # Load agent .env for Telegram notification
 AGENT_ENV="${TEMPLATE_ROOT}/agents/${AGENT}/.env"
 if [[ -f "${AGENT_ENV}" ]]; then
