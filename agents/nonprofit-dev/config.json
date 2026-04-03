@@ -4,5 +4,5 @@
   "startup_delay": 5,
   "max_session_seconds": 255600,
   "crons": [],
-  "model": "claude-sonnet-4-6"
+  "model": "claude-opus-4-6"
 }
