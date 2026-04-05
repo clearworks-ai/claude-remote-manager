@@ -50,6 +50,31 @@
       "name": "weekly-synthesis",
       "schedule": "3 16 * * 5",
       "prompt": "WEEKLY SYNTHESIS — Dispatch to a Sonnet subagent: Use the Agent tool with model:sonnet to read this week's daily notes (~/code/knowledge-sync/daily/YYYY-MM-DD.md for Mon-Fri), session files (~/code/knowledge-sync/cc/sessions/ from this week), git log --oneline -20 across ~/code/clearpath + ~/code/lifecycle-killer + ~/code/nonprofit-hub. Subagent produces a synthesis. Then YOU write it to ~/code/knowledge-sync/cc/synthesis/week-of-YYYY-MM-DD.md and extract any durable facts to save as memory files."
+    },
+    {
+      "name": "morning-brief",
+      "schedule": "3 8 * * *",
+      "prompt": "MORNING BRIEF — Before composing, pull ALL fresh data via subagents in parallel:\n\n1. Dispatch Haiku subagent: search Gmail for unread since yesterday (mcp__google-workspace__search_gmail_messages query='is:unread newer_than:1d' user_google_email='josh@clearworks.ai'), get content for results. Also search sent folder for recent replies.\n2. Dispatch Haiku subagent: get today's Google Calendar events (mcp__google-workspace__get_events for today and tomorrow).\n3. Dispatch Haiku subagent: git log --oneline -10 across ~/code/clearpath, ~/code/lifecycle-killer, ~/code/nonprofit-hub.\n\nWith ALL data collected, compose the Morning Brief and send via Telegram to 6690120787. Format:\n\n🌅 **Morning Brief — [date]**\n\n**Focus Areas** (top 3 priorities today)\n**Calendar** (today's meetings with prep notes)\n**Email Triage** (human-to-human emails needing action — categorize: respond/delegate/defer/delete)\n**Dev Status** (what shipped overnight, what's in progress)\n**Action Items** (carry-forward from yesterday + new)\n\nAlso read: ~/code/knowledge-sync/daily/$(date +%Y-%m-%d).md, ~/code/knowledge-sync/tasks/clearworks/active.md, tasks/personal/active.md, memory files."
+    },
+    {
+      "name": "midday-sync",
+      "schedule": "4 12 * * *",
+      "prompt": "MIDDAY SYNC — Pull fresh Gmail (unread last 4h), Calendar (rest of today). Read today's daily note and active tasks. Compose a momentum check and send via Telegram to 6690120787. Format:\n\n⚡ **Midday Sync — [date]**\n\n• Done since morning: [bullets]\n• High-signal emails: [any needing response]\n• Next up: [afternoon priorities]\n• Blockers: [anything stuck]\n\nMax 5-7 bullets. Short and punchy. If nothing notable, send 2-3 lines confirming on track."
+    },
+    {
+      "name": "evening-wrap",
+      "schedule": "2 17 * * *",
+      "prompt": "EVENING WRAP — Pull fresh Gmail (unread today), Calendar (tomorrow), git log today across all repos. Read daily note and active tasks. Compose wrap-up and send via Telegram to 6690120787. Format:\n\n🌙 **Evening Wrap — [date]**\n\n**Wins** (what got done today)\n**Comms Summary** (important emails/messages, responses sent)\n**Open Threads** (things waiting on others)\n**Tomorrow's Priority** (top 1-3 items)\n\nAlso update today's daily note with session summary if not already done."
+    },
+    {
+      "name": "weekly-review",
+      "schedule": "3 18 * * 5",
+      "prompt": "WEEKLY REVIEW — Dispatch Sonnet subagent to pull comprehensive weekly data: all daily notes this week, git log -30 across all repos, Gmail threads from the week, Calendar events completed, Todoist completed tasks. Compose the weekly review and send via Telegram to 6690120787. Format:\n\n📊 **Weekly Review — Week of [date]**\n\n**What Worked** (wins, shipped features, closed deals)\n**Metrics** (commits, emails handled, tasks completed)\n**What Broke** (incidents, failures, lessons)\n**Money Moves** (revenue, invoices, pipeline changes)\n**Unfinished** (carry-forward to next week)\n**Relationship Health** (client touches, stale contacts)\n**Lessons Learned** (save as memory if durable)"
+    },
+    {
+      "name": "weekly-prep",
+      "schedule": "7 14 * * 6",
+      "prompt": "WEEKLY PREP — Dispatch Sonnet subagent to pull: next week's Calendar events, active tasks and deadlines, pipeline status, financial state (invoices, AR). Compose the weekly prep and send via Telegram to 6690120787. Format:\n\n🗺️ **Weekly Prep — Week of [date]**\n\n**North Star** (what matters most this week)\n**Calendar Reality** (meetings, commitments, open slots for deep work)\n**Financial Picture** (AR, invoices due, pipeline value)\n**Key Relationships** (who needs attention this week)\n**Operations** (agent fleet, infrastructure, tech debt)\n**Project Snapshot** (status of each active project)\n**What's Off** (anything misaligned or concerning)"
     }
   ],
   "model": "claude-opus-4-6"

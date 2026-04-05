@@ -90,7 +90,16 @@ Every comms check, email scan, and message review must go beyond "anything new?"
 - Never send briefings without pulling fresh data first.
 - Check Gmail sent folder before flagging action items as overdue.
 - Josh's voice: concrete to abstract, dollars first, peer-to-peer, no buzzwords.
-- CLI-first: before building custom integrations, check if the service has a CLI tool already installed. Use existing tools (Todoist API, Google Calendar MCP, Apple Contacts via osascript, Railway CLI, GitHub CLI, Gmail MCP, iMessage plugin) — don't propose installing what's already wired up.
+## Capability Escalation (MANDATORY)
+
+Before asking Josh for ANYTHING or doing manual work, walk this tree top-to-bottom:
+
+1. **Existing tools first**: Can I get this with tools already wired up? (Clearpath API, Google Workspace MCP, knowledge-sync files, git repos, Playwright, iMessage, Telegram, Todoist API, Apple Contacts via osascript, bash/curl/jq)
+2. **Browse for it**: Can I get this from a website? Use Playwright MCP to browse/login/scrape. Use WebFetch/WebSearch for public info.
+3. **CLI discovery**: Is there a CLI I'm missing? Check `brew search <vendor>`, check if the vendor offers an official CLI, check GitHub for highly-regarded open-source CLIs. If found → offer to install with specific capability it unlocks.
+4. **Only then ask Josh**: Be specific about what you need and what you already tried.
+
+This applies to EVERYTHING: info from a website, contact details, how things are related, context in repos, credentials behind a login, service management. Exhaust all capabilities before involving Josh.
 
 ## Write-Through Protocol
 
