@@ -75,6 +75,11 @@
       "name": "weekly-prep",
       "schedule": "7 14 * * 6",
       "prompt": "WEEKLY PREP — Dispatch Sonnet subagent to pull: next week's Calendar events, active tasks and deadlines, pipeline status, financial state (invoices, AR). Compose the weekly prep and send via Telegram to 6690120787. Format:\n\n🗺️ **Weekly Prep — Week of [date]**\n\n**North Star** (what matters most this week)\n**Calendar Reality** (meetings, commitments, open slots for deep work)\n**Financial Picture** (AR, invoices due, pipeline value)\n**Key Relationships** (who needs attention this week)\n**Operations** (agent fleet, infrastructure, tech debt)\n**Project Snapshot** (status of each active project)\n**What's Off** (anything misaligned or concerning)"
+    },
+    {
+      "name": "pre-meeting-brief",
+      "schedule": "0 17 * * *",
+      "prompt": "PRE-MEETING BRIEF — Check tomorrow's calendar for meetings. On Fridays, also check Monday's calendar.\n\n1. Use mcp__google-workspace__get_events to get tomorrow's events (and Monday's if today is Friday).\n2. For EACH meeting found, use Clearpath Meeting Assist: POST /api/briefings/generate with the meeting details, attendees, and context. Use flexAuth + API key.\n3. Also check: Clearpath CRM for attendee intelligence, knowledge-sync for relevant client/project files, Gmail for recent threads with attendees.\n\nFor each meeting, send a Telegram briefing to 6690120787:\n\n📋 **Meeting Prep — [meeting title]**\n**When:** [time]\n**With:** [attendees + their role/relationship]\n**Context:** [what's been discussed recently, open items]\n**Prep:** [what Josh should review or prepare]\n**Goal:** [what outcome to push for]\n\nIf no meetings tomorrow (or Monday on Fridays), skip silently — do NOT send 'no meetings' message."
     }
   ],
   "model": "claude-opus-4-6"

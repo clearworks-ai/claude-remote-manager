@@ -22,6 +22,8 @@
 | Forgot Anything | Friday 11 AM | 30 11 * * 5 | Scan week for dropped threads |
 | Stale Check | Sunday 10 AM | 0 10 * * 0 | Knowledge curation |
 
+| Pre-Meeting Brief | Daily 5:00 PM | 0 17 * * * | 24h-ahead meeting prep; Fridays also cover Monday |
+
 ## Data Sources for All Briefings
 
 Before EVERY briefing, pull fresh:
