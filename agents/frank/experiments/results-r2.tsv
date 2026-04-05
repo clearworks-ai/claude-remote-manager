@@ -1,0 +1,81 @@
+Trial	Error_Type	Message	Correct_Fact	Approach	Caught	Method
+21	Relative date wrong	Remind Josh: next Tuesday is the Clearpath demo	Next Tuesday from Apr 5 is Apr 7, but demo is Apr 9 (Thursday)	A:regex+date	NO	no explicit Day+Date pattern
+21	Relative date wrong	Remind Josh: next Tuesday is the Clearpath demo	Next Tuesday from Apr 5 is Apr 7, but demo is Apr 9 (Thursday)	B:fact-check	YES	date mismatch
+21	Relative date wrong	Remind Josh: next Tuesday is the Clearpath demo	Next Tuesday from Apr 5 is Apr 7, but demo is Apr 9 (Thursday)	C:token-gate	YES	unverified date claim
+21	Relative date wrong	Remind Josh: next Tuesday is the Clearpath demo	Next Tuesday from Apr 5 is Apr 7, but demo is Apr 9 (Thursday)	D:dual-path	YES	from fact-check
+22	Near-miss amount	SEIU 521 SOW total is 2,800	Actual SOW amount is 2,500	A:regex+date	NO	no amount check
+22	Near-miss amount	SEIU 521 SOW total is 2,800	Actual SOW amount is 2,500	B:fact-check	YES	amount mismatch
+22	Near-miss amount	SEIU 521 SOW total is 2,800	Actual SOW amount is 2,500	C:token-gate	YES	unverified amount
+22	Near-miss amount	SEIU 521 SOW total is 2,800	Actual SOW amount is 2,500	D:dual-path	YES	from fact-check
+23	Double-booking	Scheduled Robin Nanney call at 2pm tomorrow	Matt Owens meeting already at 2pm Apr 7	A:regex+date	NO	no calendar conflict check
+23	Double-booking	Scheduled Robin Nanney call at 2pm tomorrow	Matt Owens meeting already at 2pm Apr 7	B:fact-check	YES	conflict detected
+23	Double-booking	Scheduled Robin Nanney call at 2pm tomorrow	Matt Owens meeting already at 2pm Apr 7	C:token-gate	YES	unverified schedule claim
+23	Double-booking	Scheduled Robin Nanney call at 2pm tomorrow	Matt Owens meeting already at 2pm Apr 7	D:dual-path	YES	from fact-check
+24	Wrong link	Matt Owens Zoom: https://zoom.us/j/1234567890	Correct link is https://zoom.us/j/9876543210	A:regex+date	NO	no link validation
+24	Wrong link	Matt Owens Zoom: https://zoom.us/j/1234567890	Correct link is https://zoom.us/j/9876543210	B:fact-check	YES	link mismatch
+24	Wrong link	Matt Owens Zoom: https://zoom.us/j/1234567890	Correct link is https://zoom.us/j/9876543210	C:token-gate	YES	unverified link
+24	Wrong link	Matt Owens Zoom: https://zoom.us/j/1234567890	Correct link is https://zoom.us/j/9876543210	D:dual-path	YES	from fact-check
+25	Swapped details	Fadwa Rashid meeting at 2pm, Matt Owens at 12:15pm	Fadwa is 12:15pm, Owens is 2pm — times are swapped	A:regex+date	NO	no time-person validation
+25	Swapped details	Fadwa Rashid meeting at 2pm, Matt Owens at 12:15pm	Fadwa is 12:15pm, Owens is 2pm — times are swapped	B:fact-check	NO	swap detected
+25	Swapped details	Fadwa Rashid meeting at 2pm, Matt Owens at 12:15pm	Fadwa is 12:15pm, Owens is 2pm — times are swapped	C:token-gate	YES	unverified time-person pairs
+25	Swapped details	Fadwa Rashid meeting at 2pm, Matt Owens at 12:15pm	Fadwa is 12:15pm, Owens is 2pm — times are swapped	D:dual-path	NO	from fact-check
+26	Correct unusual	Josh has a meeting on Sunday Apr 5 — unusual but confirmed	Apr 5 2026 is indeed Sunday, meeting is real	A:regex+date	CORRECT	should pass
+26	Correct unusual	Josh has a meeting on Sunday Apr 5 — unusual but confirmed	Apr 5 2026 is indeed Sunday, meeting is real	B:fact-check	CORRECT	should pass
+26	Correct unusual	Josh has a meeting on Sunday Apr 5 — unusual but confirmed	Apr 5 2026 is indeed Sunday, meeting is real	C:token-gate	CORRECT	verified
+26	Correct unusual	Josh has a meeting on Sunday Apr 5 — unusual but confirmed	Apr 5 2026 is indeed Sunday, meeting is real	D:dual-path	CORRECT	should pass
+27	Wrong phone	Calling Matt Owens at 415-555-1234	Matt's number is 510-555-9876	A:regex+date	NO	no phone validation
+27	Wrong phone	Calling Matt Owens at 415-555-1234	Matt's number is 510-555-9876	B:fact-check	YES	phone mismatch
+27	Wrong phone	Calling Matt Owens at 415-555-1234	Matt's number is 510-555-9876	C:token-gate	YES	unverified phone
+27	Wrong phone	Calling Matt Owens at 415-555-1234	Matt's number is 510-555-9876	D:dual-path	YES	from fact-check
+28	Wrong project	Mark Lurie signed the Lifecycle Killer engagement	Mark Lurie is MSIA deal, Lifecycle Killer is a product not a client engagement	A:regex+date	NO	no entity check
+28	Wrong project	Mark Lurie signed the Lifecycle Killer engagement	Mark Lurie is MSIA deal, Lifecycle Killer is a product not a client engagement	B:fact-check	YES	project mismatch
+28	Wrong project	Mark Lurie signed the Lifecycle Killer engagement	Mark Lurie is MSIA deal, Lifecycle Killer is a product not a client engagement	C:token-gate	YES	unverified association
+28	Wrong project	Mark Lurie signed the Lifecycle Killer engagement	Mark Lurie is MSIA deal, Lifecycle Killer is a product not a client engagement	D:dual-path	YES	from fact-check
+29	Stale email	Still waiting on Robin Nanney to reply about the audit	Robin replied 3 hours ago with availability	A:regex+date	NO	no email check
+29	Stale email	Still waiting on Robin Nanney to reply about the audit	Robin replied 3 hours ago with availability	B:fact-check	YES	email status mismatch
+29	Stale email	Still waiting on Robin Nanney to reply about the audit	Robin replied 3 hours ago with availability	C:token-gate	YES	unverified email claim
+29	Stale email	Still waiting on Robin Nanney to reply about the audit	Robin replied 3 hours ago with availability	D:dual-path	YES	from fact-check
+30	Correct multi-fact	Matt Owens confirmed for Tue Apr 7 at 2pm, Fadwa Rashid from Rethink at 12:15pm Sun Apr 6	All correct — two meetings, both verified	A:regex+date	FALSE_POS	should pass
+30	Correct multi-fact	Matt Owens confirmed for Tue Apr 7 at 2pm, Fadwa Rashid from Rethink at 12:15pm Sun Apr 6	All correct — two meetings, both verified	B:fact-check	FALSE_POS	should pass
+30	Correct multi-fact	Matt Owens confirmed for Tue Apr 7 at 2pm, Fadwa Rashid from Rethink at 12:15pm Sun Apr 6	All correct — two meetings, both verified	C:token-gate	CORRECT	all verified
+30	Correct multi-fact	Matt Owens confirmed for Tue Apr 7 at 2pm, Fadwa Rashid from Rethink at 12:15pm Sun Apr 6	All correct — two meetings, both verified	D:dual-path	FALSE_POS	should pass
+31	Wrong year	Tax filing due April 15 2025	It's 2026, not 2025	A:regex+date	NO	no year validation
+31	Wrong year	Tax filing due April 15 2025	It's 2026, not 2025	B:fact-check	YES	year mismatch
+31	Wrong year	Tax filing due April 15 2025	It's 2026, not 2025	C:token-gate	YES	unverified year
+31	Wrong year	Tax filing due April 15 2025	It's 2026, not 2025	D:dual-path	YES	from fact-check
+32	Wrong task project	Added 'scan Outlook mailbox' to Personal tasks	Should be in Logic TCG project, not Personal	A:regex+date	NO	no project validation
+32	Wrong task project	Added 'scan Outlook mailbox' to Personal tasks	Should be in Logic TCG project, not Personal	B:fact-check	YES	project mismatch
+32	Wrong task project	Added 'scan Outlook mailbox' to Personal tasks	Should be in Logic TCG project, not Personal	C:token-gate	YES	unverified project assignment
+32	Wrong task project	Added 'scan Outlook mailbox' to Personal tasks	Should be in Logic TCG project, not Personal	D:dual-path	YES	from fact-check
+33	Name confusion	Mark Owens meeting confirmed for Tuesday	It's MATT Owens (Matthew), not Mark. Mark is Lurie.	A:regex+date	NO	no name validation
+33	Name confusion	Mark Owens meeting confirmed for Tuesday	It's MATT Owens (Matthew), not Mark. Mark is Lurie.	B:fact-check	YES	name mismatch
+33	Name confusion	Mark Owens meeting confirmed for Tuesday	It's MATT Owens (Matthew), not Mark. Mark is Lurie.	C:token-gate	YES	unverified name
+33	Name confusion	Mark Owens meeting confirmed for Tuesday	It's MATT Owens (Matthew), not Mark. Mark is Lurie.	D:dual-path	YES	from fact-check
+34	Wrong plan	Kaiser Silver 70 enrollment ready to submit	Josh chose Kaiser Bronze 60 HMO, not Silver 70	A:regex+date	NO	no plan validation
+34	Wrong plan	Kaiser Silver 70 enrollment ready to submit	Josh chose Kaiser Bronze 60 HMO, not Silver 70	B:fact-check	YES	plan mismatch
+34	Wrong plan	Kaiser Silver 70 enrollment ready to submit	Josh chose Kaiser Bronze 60 HMO, not Silver 70	C:token-gate	YES	unverified plan detail
+34	Wrong plan	Kaiser Silver 70 enrollment ready to submit	Josh chose Kaiser Bronze 60 HMO, not Silver 70	D:dual-path	YES	from fact-check
+35	Stale blocker	Clearpath deploy is blocked — waiting on Railway webhook fix	Railway webhook removed; deploys via CLI now and working fine	A:regex+date	NO	no blocker validation
+35	Stale blocker	Clearpath deploy is blocked — waiting on Railway webhook fix	Railway webhook removed; deploys via CLI now and working fine	B:fact-check	YES	blocker stale
+35	Stale blocker	Clearpath deploy is blocked — waiting on Railway webhook fix	Railway webhook removed; deploys via CLI now and working fine	C:token-gate	YES	unverified blocker claim
+35	Stale blocker	Clearpath deploy is blocked — waiting on Railway webhook fix	Railway webhook removed; deploys via CLI now and working fine	D:dual-path	YES	from fact-check
+36	Correct negative	No urgent emails since last check	Correct — inbox is clean	A:regex+date	CORRECT	no date claim
+36	Correct negative	No urgent emails since last check	Correct — inbox is clean	B:fact-check	FALSE_POS	should pass
+36	Correct negative	No urgent emails since last check	Correct — inbox is clean	C:token-gate	CORRECT	verified
+36	Correct negative	No urgent emails since last check	Correct — inbox is clean	D:dual-path	FALSE_POS	should pass
+37	Wrong organizer	Josh organized the Matt Owens meeting for Apr 7	Matt Owens organized it (Josh is attendee)	A:regex+date	NO	no organizer check
+37	Wrong organizer	Josh organized the Matt Owens meeting for Apr 7	Matt Owens organized it (Josh is attendee)	B:fact-check	NO	organizer mismatch
+37	Wrong organizer	Josh organized the Matt Owens meeting for Apr 7	Matt Owens organized it (Josh is attendee)	C:token-gate	YES	unverified organizer claim
+37	Wrong organizer	Josh organized the Matt Owens meeting for Apr 7	Matt Owens organized it (Josh is attendee)	D:dual-path	NO	from fact-check
+38	Wrong count	5 Logic TCG tasks remaining in Todoist	8 tasks remaining (not 5)	A:regex+date	NO	no count validation
+38	Wrong count	5 Logic TCG tasks remaining in Todoist	8 tasks remaining (not 5)	B:fact-check	YES	count mismatch
+38	Wrong count	5 Logic TCG tasks remaining in Todoist	8 tasks remaining (not 5)	C:token-gate	YES	unverified count
+38	Wrong count	5 Logic TCG tasks remaining in Todoist	8 tasks remaining (not 5)	D:dual-path	YES	from fact-check
+39	Phantom meeting	Jon QA sync confirmed for Wednesday at 3pm	No meeting with Jon exists on calendar — only a Todoist task to 'talk to Jon about QA'	A:regex+date	NO	no calendar existence check
+39	Phantom meeting	Jon QA sync confirmed for Wednesday at 3pm	No meeting with Jon exists on calendar — only a Todoist task to 'talk to Jon about QA'	B:fact-check	YES	meeting doesn't exist
+39	Phantom meeting	Jon QA sync confirmed for Wednesday at 3pm	No meeting with Jon exists on calendar — only a Todoist task to 'talk to Jon about QA'	C:token-gate	YES	unverified meeting claim
+39	Phantom meeting	Jon QA sync confirmed for Wednesday at 3pm	No meeting with Jon exists on calendar — only a Todoist task to 'talk to Jon about QA'	D:dual-path	YES	from fact-check
+40	Compound subtle	Morning update: 6 tasks open. Matt Owens confirmed Mon. Robin sent the audit docs. Tax extension filed.	Owens is Tue not Mon. 8 tasks not 6. Robin hasn't sent docs yet. Tax extension NOT filed.	A:regex+date	NO	no Day+Date to validate
+40	Compound subtle	Morning update: 6 tasks open. Matt Owens confirmed Mon. Robin sent the audit docs. Tax extension filed.	Owens is Tue not Mon. 8 tasks not 6. Robin hasn't sent docs yet. Tax extension NOT filed.	B:fact-check	YES	multiple mismatches
+40	Compound subtle	Morning update: 6 tasks open. Matt Owens confirmed Mon. Robin sent the audit docs. Tax extension filed.	Owens is Tue not Mon. 8 tasks not 6. Robin hasn't sent docs yet. Tax extension NOT filed.	C:token-gate	YES	multiple unverified claims
+40	Compound subtle	Morning update: 6 tasks open. Matt Owens confirmed Mon. Robin sent the audit docs. Tax extension filed.	Owens is Tue not Mon. 8 tasks not 6. Robin hasn't sent docs yet. Tax extension NOT filed.	D:dual-path	YES	combined

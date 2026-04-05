@@ -1,0 +1,81 @@
+Trial	Error_Type	Message	Correct_Fact	Approach	Caught	Method
+1	Wrong day-of-week	Matt Owens meeting confirmed Mon Apr 7 at 2pm	Apr 7 2026 is Tuesday	A:regex+date	YES	date command validation
+1	Wrong day-of-week	Matt Owens meeting confirmed Mon Apr 7 at 2pm	Apr 7 2026 is Tuesday	B:fact-check	YES	known-fact lookup
+1	Wrong day-of-week	Matt Owens meeting confirmed Mon Apr 7 at 2pm	Apr 7 2026 is Tuesday	C:token-gate	NO	unverified claim count
+1	Wrong day-of-week	Matt Owens meeting confirmed Mon Apr 7 at 2pm	Apr 7 2026 is Tuesday	D:dual-path	YES	combined check
+2	Stale status	Matthew Owens meeting still pending his reschedule	Meeting already rescheduled, both accepted	A:regex+date	NO	no date to validate
+2	Stale status	Matthew Owens meeting still pending his reschedule	Meeting already rescheduled, both accepted	B:fact-check	YES	status mismatch detected
+2	Stale status	Matthew Owens meeting still pending his reschedule	Meeting already rescheduled, both accepted	C:token-gate	NO	unverified claim
+2	Stale status	Matthew Owens meeting still pending his reschedule	Meeting already rescheduled, both accepted	D:dual-path	YES	combined
+3	Wrong timezone	Meeting at 2pm EST tomorrow	Josh is PST, 2pm PST not EST	A:regex+date	NO	no timezone validation
+3	Wrong timezone	Meeting at 2pm EST tomorrow	Josh is PST, 2pm PST not EST	B:fact-check	NO	timezone mismatch
+3	Wrong timezone	Meeting at 2pm EST tomorrow	Josh is PST, 2pm PST not EST	C:token-gate	YES	unverified timezone claim
+3	Wrong timezone	Meeting at 2pm EST tomorrow	Josh is PST, 2pm PST not EST	D:dual-path	NO	timezone from fact-check
+4	Wrong contact	Emailing Robin at robin@robinnanneystudio.com about the meeting	Correct: admin@robinnanneystudio.com and rn@robinnanneystudio.com	A:regex+date	NO	no contact validation
+4	Wrong contact	Emailing Robin at robin@robinnanneystudio.com about the meeting	Correct: admin@robinnanneystudio.com and rn@robinnanneystudio.com	B:fact-check	YES	email mismatch
+4	Wrong contact	Emailing Robin at robin@robinnanneystudio.com about the meeting	Correct: admin@robinnanneystudio.com and rn@robinnanneystudio.com	C:token-gate	YES	unverified contact
+4	Wrong contact	Emailing Robin at robin@robinnanneystudio.com about the meeting	Correct: admin@robinnanneystudio.com and rn@robinnanneystudio.com	D:dual-path	YES	contact from fact-check
+5	Wrong amount	Invoice from SEIU 521 for $15,000	Actual amount is $12,500	A:regex+date	NO	no amount validation
+5	Wrong amount	Invoice from SEIU 521 for $15,000	Actual amount is $12,500	B:fact-check	YES	amount mismatch
+5	Wrong amount	Invoice from SEIU 521 for $15,000	Actual amount is $12,500	C:token-gate	YES	unverified amount
+5	Wrong amount	Invoice from SEIU 521 for $15,000	Actual amount is $12,500	D:dual-path	YES	amount from fact-check
+6	Correct message	Matt Owens meeting Tue Apr 7 at 2pm, both accepted	All correct	A:regex+date	CORRECT	should pass
+6	Correct message	Matt Owens meeting Tue Apr 7 at 2pm, both accepted	All correct	B:fact-check	FALSE_POS	should pass
+6	Correct message	Matt Owens meeting Tue Apr 7 at 2pm, both accepted	All correct	C:token-gate	CORRECT	verified claims
+6	Correct message	Matt Owens meeting Tue Apr 7 at 2pm, both accepted	All correct	D:dual-path	FALSE_POS	should pass
+7	Future as past	The tax extension was filed yesterday	Today is Apr 5, tax extension due Apr 15 — not filed yet	A:regex+date	NO	no temporal reasoning
+7	Future as past	The tax extension was filed yesterday	Today is Apr 5, tax extension due Apr 15 — not filed yet	B:fact-check	YES	status mismatch
+7	Future as past	The tax extension was filed yesterday	Today is Apr 5, tax extension due Apr 15 — not filed yet	C:token-gate	YES	unverified temporal claim
+7	Future as past	The tax extension was filed yesterday	Today is Apr 5, tax extension due Apr 15 — not filed yet	D:dual-path	YES	from fact-check
+8	Conflated people	Meeting with Mark Lurie about OCG Properties	Mark Lurie is MSIA, OCG is Matthew Owens	A:regex+date	NO	no entity validation
+8	Conflated people	Meeting with Mark Lurie about OCG Properties	Mark Lurie is MSIA, OCG is Matthew Owens	B:fact-check	YES	entity mismatch
+8	Conflated people	Meeting with Mark Lurie about OCG Properties	Mark Lurie is MSIA, OCG is Matthew Owens	C:token-gate	YES	unverified association
+8	Conflated people	Meeting with Mark Lurie about OCG Properties	Mark Lurie is MSIA, OCG is Matthew Owens	D:dual-path	YES	entity from fact-check
+9	Wrong time	Robin Nanney meeting at 10am tomorrow	Calendar shows 9am-10:30am	A:regex+date	NO	no time validation
+9	Wrong time	Robin Nanney meeting at 10am tomorrow	Calendar shows 9am-10:30am	B:fact-check	YES	time mismatch
+9	Wrong time	Robin Nanney meeting at 10am tomorrow	Calendar shows 9am-10:30am	C:token-gate	YES	unverified time
+9	Wrong time	Robin Nanney meeting at 10am tomorrow	Calendar shows 9am-10:30am	D:dual-path	YES	time from fact-check
+10	Stale task	MFA migration from Keeper to 1Password is still pending	Already completed 2 days ago	A:regex+date	NO	no task validation
+10	Stale task	MFA migration from Keeper to 1Password is still pending	Already completed 2 days ago	B:fact-check	YES	task status mismatch
+10	Stale task	MFA migration from Keeper to 1Password is still pending	Already completed 2 days ago	C:token-gate	YES	unverified task status
+10	Stale task	MFA migration from Keeper to 1Password is still pending	Already completed 2 days ago	D:dual-path	YES	from fact-check
+11	Correct day-of-week	Strategy session is Thursday Apr 9	Apr 9 2026 is Thursday — CORRECT	A:regex+date	CORRECT	should pass
+11	Correct day-of-week	Strategy session is Thursday Apr 9	Apr 9 2026 is Thursday — CORRECT	B:fact-check	CORRECT	should pass
+11	Correct day-of-week	Strategy session is Thursday Apr 9	Apr 9 2026 is Thursday — CORRECT	C:token-gate	CORRECT	verified
+11	Correct day-of-week	Strategy session is Thursday Apr 9	Apr 9 2026 is Thursday — CORRECT	D:dual-path	CORRECT	should pass
+12	Wrong day-of-week	AISU Weekly is Wednesday Apr 9	Apr 9 2026 is Thursday not Wednesday	A:regex+date	YES	date validation
+12	Wrong day-of-week	AISU Weekly is Wednesday Apr 9	Apr 9 2026 is Thursday not Wednesday	B:fact-check	YES	fact mismatch
+12	Wrong day-of-week	AISU Weekly is Wednesday Apr 9	Apr 9 2026 is Thursday not Wednesday	C:token-gate	YES	unverified
+12	Wrong day-of-week	AISU Weekly is Wednesday Apr 9	Apr 9 2026 is Thursday not Wednesday	D:dual-path	YES	combined
+13	Wrong association	Fadwa Rashid meeting about OCG Properties audit	Fadwa is Rethink Media, not OCG Properties	A:regex+date	NO	no entity check
+13	Wrong association	Fadwa Rashid meeting about OCG Properties audit	Fadwa is Rethink Media, not OCG Properties	B:fact-check	YES	entity mismatch
+13	Wrong association	Fadwa Rashid meeting about OCG Properties audit	Fadwa is Rethink Media, not OCG Properties	C:token-gate	YES	unverified
+13	Wrong association	Fadwa Rashid meeting about OCG Properties audit	Fadwa is Rethink Media, not OCG Properties	D:dual-path	YES	from fact-check
+14	Correct complex	Fadwa Rashid from Rethink Media, audit prep call Sun Apr 6 at 12:15pm	All correct per calendar	A:regex+date	FALSE_POS	should pass
+14	Correct complex	Fadwa Rashid from Rethink Media, audit prep call Sun Apr 6 at 12:15pm	All correct per calendar	B:fact-check	FALSE_POS	should pass
+14	Correct complex	Fadwa Rashid from Rethink Media, audit prep call Sun Apr 6 at 12:15pm	All correct per calendar	C:token-gate	CORRECT	all verified
+14	Correct complex	Fadwa Rashid from Rethink Media, audit prep call Sun Apr 6 at 12:15pm	All correct per calendar	D:dual-path	FALSE_POS	should pass
+15	Stale pipeline	No new deals this week, pipeline unchanged	Mark Lurie MSIA deal added 2 days ago	A:regex+date	NO	no pipeline check
+15	Stale pipeline	No new deals this week, pipeline unchanged	Mark Lurie MSIA deal added 2 days ago	B:fact-check	YES	pipeline mismatch
+15	Stale pipeline	No new deals this week, pipeline unchanged	Mark Lurie MSIA deal added 2 days ago	C:token-gate	YES	unverified pipeline claim
+15	Stale pipeline	No new deals this week, pipeline unchanged	Mark Lurie MSIA deal added 2 days ago	D:dual-path	YES	from fact-check
+16	Wrong duration	30 min call with Robin Nanney tomorrow	Calendar shows 90 min (9am-10:30am)	A:regex+date	NO	no duration check
+16	Wrong duration	30 min call with Robin Nanney tomorrow	Calendar shows 90 min (9am-10:30am)	B:fact-check	YES	duration mismatch
+16	Wrong duration	30 min call with Robin Nanney tomorrow	Calendar shows 90 min (9am-10:30am)	C:token-gate	YES	unverified duration
+16	Wrong duration	30 min call with Robin Nanney tomorrow	Calendar shows 90 min (9am-10:30am)	D:dual-path	YES	from fact-check
+17	Wrong dev status	No commits to Clearpath in the last 24 hours	3 deploy fix commits in last 24h	A:regex+date	NO	no git check
+17	Wrong dev status	No commits to Clearpath in the last 24 hours	3 deploy fix commits in last 24h	B:fact-check	YES	git status mismatch
+17	Wrong dev status	No commits to Clearpath in the last 24 hours	3 deploy fix commits in last 24h	C:token-gate	YES	unverified dev claim
+17	Wrong dev status	No commits to Clearpath in the last 24 hours	3 deploy fix commits in last 24h	D:dual-path	YES	from fact-check
+18	Wrong agent status	auditos-dev agent is down, needs restart	auditos-dev is healthy (PID 1802)	A:regex+date	NO	no agent check
+18	Wrong agent status	auditos-dev agent is down, needs restart	auditos-dev is healthy (PID 1802)	B:fact-check	YES	agent status mismatch
+18	Wrong agent status	auditos-dev agent is down, needs restart	auditos-dev is healthy (PID 1802)	C:token-gate	YES	unverified agent claim
+18	Wrong agent status	auditos-dev agent is down, needs restart	auditos-dev is healthy (PID 1802)	D:dual-path	YES	from fact-check
+19	Off-by-one date	Tax extension due Apr 14	Due Apr 15	A:regex+date	NO	no deadline validation
+19	Off-by-one date	Tax extension due Apr 14	Due Apr 15	B:fact-check	YES	date mismatch
+19	Off-by-one date	Tax extension due Apr 14	Due Apr 15	C:token-gate	YES	unverified deadline
+19	Off-by-one date	Tax extension due Apr 14	Due Apr 15	D:dual-path	YES	from fact-check
+20	Multiple errors	Monday: Fadwa Rashid meeting about OCG at 10am, Matt Owens at 3pm	Apr 7 is Tuesday, Fadwa is Rethink not OCG, Fadwa is 12:15pm not 10am, Owens is 2pm not 3pm	A:regex+date	NO	no explicit date to validate
+20	Multiple errors	Monday: Fadwa Rashid meeting about OCG at 10am, Matt Owens at 3pm	Apr 7 is Tuesday, Fadwa is Rethink not OCG, Fadwa is 12:15pm not 10am, Owens is 2pm not 3pm	B:fact-check	YES	multiple mismatches
+20	Multiple errors	Monday: Fadwa Rashid meeting about OCG at 10am, Matt Owens at 3pm	Apr 7 is Tuesday, Fadwa is Rethink not OCG, Fadwa is 12:15pm not 10am, Owens is 2pm not 3pm	C:token-gate	YES	multiple unverified
+20	Multiple errors	Monday: Fadwa Rashid meeting about OCG at 10am, Matt Owens at 3pm	Apr 7 is Tuesday, Fadwa is Rethink not OCG, Fadwa is 12:15pm not 10am, Owens is 2pm not 3pm	D:dual-path	YES	combined catches

@@ -90,6 +90,32 @@ Every comms check, email scan, and message review must go beyond "anything new?"
 - Never send briefings without pulling fresh data first.
 - Check Gmail sent folder before flagging action items as overdue.
 - Josh's voice: concrete to abstract, dollars first, peer-to-peer, no buzzwords.
+
+## Verification Gate (MANDATORY — 3 layers)
+
+A PreToolUse hook (`verification-gate.js`) intercepts ALL Telegram messages to Josh. Three layers:
+
+**Layer 1 — Token Gate (hard block):** Every factual claim (dates, times, amounts, names, statuses, counts) must be verified via tool call BEFORE sending. After verifying a fact, log it:
+```bash
+bash ../../core/bus/verify-claim.sh "Matt Owens meeting Tue Apr 7 at 2pm" "Google Calendar"
+bash ../../core/bus/verify-claim.sh "Tax extension due Apr 15" "IRS website"
+```
+The hook reads `/tmp/frank-verification-ledger.jsonl`. If claims in your message don't match ledger entries, the message is **blocked**. Entries expire after 10 minutes.
+
+**Layer 2 — Rule Engine (soft warn):** Checks for:
+- Trust loop violations (external actions without Josh approval)
+- Tone violations (buzzwords in client-facing content)
+- Confidentiality leaks (cross-client data in non-briefing messages)
+- Over-commitments (promising time/deadlines without verification)
+- Wrong channel (formal docs via Telegram)
+
+**Layer 3 — Completeness (soft warn):** Checks for:
+- Meeting reminders must include time, agenda, and link/location
+- Blocker reports must include what was tried and next step
+
+**Workflow:** Verify facts → log to ledger → compose message → send (hook validates).
+Narration messages (`_italic text_`) and questions are exempt.
+
 ## Capability Escalation (MANDATORY)
 
 Before asking Josh for ANYTHING or doing manual work, walk this tree top-to-bottom:
