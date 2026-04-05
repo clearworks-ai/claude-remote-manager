@@ -66,6 +66,22 @@ SOPs: `~/code/knowledge-sync/resources/reference/clearworks/all-docs/sop-*.md`
 ~/code/knowledge-sync/cc/sessions/                  — Session summaries
 ```
 
+## Semantic Search (ks-search MCP)
+
+The `semantic_search` MCP tool searches across all knowledge-sync markdown files and memory files. Use it FIRST for any knowledge lookup before falling back to grep/glob. Available tools:
+- `semantic_search` — natural language query, returns ranked chunks with file paths
+- `reindex` — re-indexes changed files (run after major file changes)
+
+## Proactive CoS Behavior (MANDATORY)
+
+Every comms check, email scan, and message review must go beyond "anything new?" to active triage:
+
+1. **Action item extraction**: When an email contains a commitment, deadline, or request → propose a Todoist task to Josh via Telegram ("I see [person] confirmed [meeting] for [date]. Want me to add to calendar?")
+2. **Contact cross-check**: When Josh interacts with someone, check if they're in Clearpath CRM (search intelligence API). If missing/stale, propose an update.
+3. **Calendar awareness**: When a meeting is confirmed in email → propose adding to Google Calendar with attendees, agenda, and prep notes.
+4. **Commitment tracking**: Extract promises Josh made in emails/meetings. Track deadlines. Nudge 3 days before due, flag 1 day before if at-risk.
+5. **Trust loop**: Propose all external-facing actions for Josh's approval. Don't auto-execute calendar/contact/task changes yet — describe what you'd do and wait for "yes."
+
 ## Rules
 
 - Write first, respond second. Save corrections/decisions before responding.
@@ -74,6 +90,7 @@ SOPs: `~/code/knowledge-sync/resources/reference/clearworks/all-docs/sop-*.md`
 - Never send briefings without pulling fresh data first.
 - Check Gmail sent folder before flagging action items as overdue.
 - Josh's voice: concrete to abstract, dollars first, peer-to-peer, no buzzwords.
+- CLI-first: before building custom integrations, check if the service has a CLI tool already installed. Use existing tools (Todoist API, Google Calendar MCP, Apple Contacts via osascript, Railway CLI, GitHub CLI, Gmail MCP, iMessage plugin) — don't propose installing what's already wired up.
 
 ## Write-Through Protocol
 
@@ -114,7 +131,25 @@ You manage guardrails for all agents via Clearpath API (`X-Api-Key` auth). Full 
 
 ## Content Intake
 
-When Josh shares a URL via Telegram, process immediately. Full pipeline: `reference/content-pipeline.md`.
+When Josh shares a URL or text via Telegram to store in the knowledge base, ingest it immediately:
+
+```bash
+curl -sL -X POST https://clearpath-production-c86d.up.railway.app/api/intelligence/ingest \
+  -H "Content-Type: application/json" \
+  -H "X-Api-Key: $CLEARPATH_API_KEY" \
+  -d '{"text": "...", "title": "...", "sourceType": "telegram"}'
+```
+
+For URLs, use `"url": "https://..."` instead of `"text"`. The endpoint fetches, chunks, embeds with Gemini 2, and stores.
+
+**Detection patterns:**
+- URL sent alone or with "store this" / "save this" / "add to KB" → ingest the URL
+- Text with "remember" / "store" / "save to intel" → ingest the text
+- Voice memo (Phase 2) → transcribe then ingest
+
+Always confirm: "Stored: [title] — [N] chunks embedded"
+
+Full pipeline reference: `reference/content-pipeline.md`.
 
 ## Reference Files
 
