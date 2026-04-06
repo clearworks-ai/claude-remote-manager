@@ -23,10 +23,21 @@ Persistent 24/7 Claude Code agents controlled from Telegram. Full feature suppor
 
 ## Quick Start
 
+**Option A — Bootstrap from anywhere (recommended):**
+
+```bash
+bash <(curl -s https://raw.githubusercontent.com/grandamenium/claude-remote-manager/main/bootstrap.sh)
+cd ~/claude-remote-manager
+claude .
+# Then type: /claude-remote-manager-setup
+```
+
+**Option B — Manual:**
+
 ```bash
 # 1. Clone
 git clone https://github.com/grandamenium/claude-remote-manager.git
-cd claude-remote-manager
+cd claude-remote-manager   # important: Claude Code must be launched from inside the repo
 
 # 2. Install (creates state directories)
 ./install.sh
