@@ -249,6 +249,12 @@ CONTEXT_MAX_HOURS=$(jq -r '.context_max_hours // 16' "${AGENT_DIR}/config.json" 
 CONTEXT_MAX_INJECTIONS=$(jq -r '.context_max_injections // 150' "${AGENT_DIR}/config.json" 2>/dev/null || echo "150")
 CONTEXT_RESTART_TRIGGERED=false
 
+# Optional Telegram alerts for context fill milestones (70/85%)
+# Set telegram_chat_id in config.json to enable. If absent, alerts are skipped.
+CONTEXT_ALERT_CHAT_ID=$(jq -r '.telegram_chat_id // empty' "${AGENT_DIR}/config.json" 2>/dev/null || echo "")
+CONTEXT_ALERT_70_SENT=false
+CONTEXT_ALERT_85_SENT=false
+
 LAST_AUTO_REPLY=0
 AUTO_REPLY_COOLDOWN=60  # seconds between auto-replies
 
@@ -456,6 +462,24 @@ while true; do
             PCT_MATCH=$(echo "$STATUS_BAR" | grep -oE '[0-9]+%' | head -1 | tr -d '%')
             if [[ -n "$PCT_MATCH" && "$PCT_MATCH" =~ ^[0-9]+$ ]]; then
                 CONTEXT_PCT=$PCT_MATCH
+            fi
+        fi
+
+        # --- Early-warning Telegram alerts at 70% / 85% ---
+        if [[ -n "$CONTEXT_ALERT_CHAT_ID" ]] && (( CONTEXT_PCT > 0 )); then
+            if (( CONTEXT_PCT >= 70 )) && [[ "$CONTEXT_ALERT_70_SENT" == "false" ]]; then
+                log "CONTEXT_ALERT_70: ${AGENT} at ${CONTEXT_PCT}% — sending Telegram heads-up"
+                bash "${TEMPLATE_ROOT}/core/bus/send-telegram.sh" "${CONTEXT_ALERT_CHAT_ID}" \
+                    "⚠️ ${AGENT}: context at ${CONTEXT_PCT}% (warn 70%). Auto-restart fires at 80%." \
+                    >/dev/null 2>&1 || true
+                CONTEXT_ALERT_70_SENT=true
+            fi
+            if (( CONTEXT_PCT >= 85 )) && [[ "$CONTEXT_ALERT_85_SENT" == "false" ]]; then
+                log "CONTEXT_ALERT_85: ${AGENT} at ${CONTEXT_PCT}% — sending Telegram emergency"
+                bash "${TEMPLATE_ROOT}/core/bus/send-telegram.sh" "${CONTEXT_ALERT_CHAT_ID}" \
+                    "🚨 ${AGENT}: context at ${CONTEXT_PCT}% (past 80% restart threshold). If no restart fired, safety net forces in 2 min." \
+                    >/dev/null 2>&1 || true
+                CONTEXT_ALERT_85_SENT=true
             fi
         fi
 
