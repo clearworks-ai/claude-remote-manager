@@ -27,7 +27,48 @@ Send italic Telegram progress updates every 2-3 tool calls while working on ANY 
 
 ## Deployed URL
 
-clearpath-production-c86d.up.railway.app
+Canonical: **https://clrpath.ai** (ALWAYS use this — the Railway URL 301-redirects and drops `x-api-key`).
+Railway (internal only): clearpath-production-c86d.up.railway.app
+
+## Programmatic Auth — Use This For Every Verification
+
+**You have a long-lived Clearpath API key. Stop logging in manually. Stop asking Josh.**
+
+- Key file: `~/.clearworks/clearpath-api-key` (chmod 600)
+- Helper: `bash scripts/cp.sh <path> [curl-args...]` — wraps `curl` with the `x-api-key` header against `https://clrpath.ai`
+- Server support: `isAuthenticated` middleware in `server/replit_integrations/auth/replitAuth.ts` checks `x-api-key` FIRST, then falls through to session auth. Every route using `isAuthenticated` is therefore callable with the key — no route changes needed.
+
+**Examples:**
+```bash
+# List all agreement templates
+bash scripts/cp.sh /api/agreement-templates
+
+# Fetch one template (verify rendered content after a deploy)
+bash scripts/cp.sh /api/agreement-templates/5 | jq '.sections[] | select(.type=="testimonials")'
+
+# POST to briefings
+bash scripts/cp.sh /api/briefings/generate -X POST \
+  -H 'content-type: application/json' \
+  -d '{"meetingId":123}'
+```
+
+**Verification workflow (use this, don't manually screenshot):**
+1. Push a change to main
+2. Wait for Railway deploy (`railway logs --deployment | tail -20`)
+3. Call the relevant endpoint via `scripts/cp.sh`
+4. Assert the JSON matches expectations
+5. Only fall back to Playwright for genuine UI/visual regressions
+
+**If the key is missing** (new machine, rotated, etc), regenerate:
+```bash
+cd ~/code/clearpath
+npx tsx server/scripts/create-agent-api-key.ts <orgId> <userId> "clearpath-dev agent"
+# Copy the printed cpk_* value into ~/.clearworks/clearpath-api-key, chmod 600
+```
+
+Clearworks.AI Internal orgId: `0ce7b73b-...` (see memory: `reference_clearpath_org_ids.md`).
+
+**Do not forget this.** Read it on every session start.
 
 ## Rules
 
