@@ -82,5 +82,6 @@
       "prompt": "PRE-MEETING BRIEF — Check tomorrow's calendar for meetings. On Fridays, also check Monday's calendar.\n\n1. Use mcp__google-workspace__get_events to get tomorrow's events (and Monday's if today is Friday).\n2. For EACH meeting found, use Clearpath Meeting Assist: POST /api/briefings/generate with the meeting details, attendees, and context. Use flexAuth + API key.\n3. Also check: Clearpath CRM for attendee intelligence, knowledge-sync for relevant client/project files, Gmail for recent threads with attendees.\n\nFor each meeting, send a Telegram briefing to 6690120787:\n\n📋 **Meeting Prep — [meeting title]**\n**When:** [time]\n**With:** [attendees + their role/relationship]\n**Context:** [what's been discussed recently, open items]\n**Prep:** [what Josh should review or prepare]\n**Goal:** [what outcome to push for]\n\nIf no meetings tomorrow (or Monday on Fridays), skip silently — do NOT send 'no meetings' message."
     }
   ],
-  "model": "claude-opus-4-6"
+  "model": "claude-opus-4-6",
+  "telegram_chat_id": "6690120787"
 }
