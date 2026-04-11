@@ -271,7 +271,7 @@ BOOTSTRAP_GRACE_SECONDS=600  # skip frozen detection for first 10 min after star
 # Passive frozen detection: detect stale agents even without human messages
 LAST_PANE_HASH=""
 PANE_UNCHANGED_SINCE=0  # timestamp when pane content last changed
-PASSIVE_FROZEN_THRESHOLD=1800  # 30 min of zero pane change while busy = frozen
+PASSIVE_FROZEN_THRESHOLD=900   # 15 min of zero pane change while busy = frozen (lowered from 1800 2026-04-10: two agents hung 16-17m on `git push ... | tail` pipes, below old threshold)
 PASSIVE_FROZEN_TRIGGERED=false
 
 # Telemetry state file (Fix 7)
